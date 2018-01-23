@@ -1,6 +1,9 @@
 #include <cstdint>
 
-int main()
+extern "C" void start();
+
+void start()
 {
-  return 0;
+  // Print ! to the serial console as a sign of life.
+  asm volatile ("out %%al, (%%dx)" : : "d" (0x3f8), "a" ('!'));
 }

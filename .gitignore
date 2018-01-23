@@ -1,4 +1,5 @@
 /.scons*
 *~
 *.o
-*.elf
+*.elf32
+*.elf64
