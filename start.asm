@@ -10,6 +10,7 @@
 %define PTE_PS (1 << 7)
 
 %define CR4_PAE (1 << 5)
+%define CR0_PE (1 << 0)
 %define CR0_PG (1 << 31)
 
   bits 32
@@ -41,6 +42,9 @@ _boot_gdt:
   dq 0x00a0930000000000         ; Data
 _boot_gdt_end:
 
+%define RING0_CODE_SELECTOR 0x08
+%define RING0_DATA_SELECTOR 0x10
+
 _boot_gdt_ptr:
   dw _boot_gdt_end - _boot_gdt - 1
   dd _boot_gdt
@@ -48,29 +52,28 @@ _boot_gdt_ptr:
 _start:
 
   ; Fill out PML4
-  lea eax, [boot_pdpt]
+  mov eax, boot_pdpt
   or eax, PTE_P | PTE_W | PTE_U
   mov dword [boot_pml4], eax
 
   ; Fill out PDPT
-  lea eax, [boot_pd]
+  mov eax, boot_pd
   or eax, PTE_P | PTE_W | PTE_U
   mov dword [boot_pdpt], eax
 
   ; Fill out PDE
-  lea eax, [_image_start]
+  mov eax, _image_start
   mov ebx, eax
   shr ebx, 18
   or eax, PTE_P | PTE_W | PTE_PS
   mov dword [boot_pd + ebx], eax
 
   ; Load page table
-  lea eax, [boot_pml4]
+  mov eax, boot_pml4
   mov cr3, eax
 
   ; Long mode initialization. See Intel SDM Vol. 3 Chapter 9.8.5.
-  mov eax, cr4
-  or eax, CR4_PAE
+  mov eax, CR4_PAE
   mov cr4, eax
 
   xor edx, edx
@@ -79,18 +82,22 @@ _start:
   wrmsr
 
   ; Enable paging
-  mov eax, cr0
-  or eax, CR0_PG
+  mov eax, CR0_PE | CR0_PG
   mov cr0, eax
 
   lgdt [_boot_gdt_ptr]
-  jmp 8:_start_long
+  jmp RING0_CODE_SELECTOR:_start_long
 
   bits 64
   default rel
 _start_long:
 
-  ; TODO set segment registers
+  mov eax, RING0_DATA_SELECTOR
+  mov ss, eax
+  mov ds, eax
+  mov es, eax
+  mov fs, eax
+  mov gs, eax
 
   lea rsp, [kern_stack_end]
   call start
