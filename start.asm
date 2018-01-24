@@ -36,17 +36,15 @@ align 4
 
 align 8
 _boot_gdt:
-  dq 0
+  dw _boot_gdt_end - _boot_gdt - 1
+  dd _boot_gdt
+  dw 0
   dq 0x00a09b0000000000         ; Code
   dq 0x00a0930000000000         ; Data
 _boot_gdt_end:
 
 %define RING0_CODE_SELECTOR 0x08
 %define RING0_DATA_SELECTOR 0x10
-
-_boot_gdt_ptr:
-  dw _boot_gdt_end - _boot_gdt - 1
-  dd _boot_gdt
 
 _start:
 
@@ -84,7 +82,7 @@ _start:
   mov eax, CR0_PE | CR0_PG
   mov cr0, eax
 
-  lgdt [_boot_gdt_ptr]
+  lgdt [_boot_gdt]
   jmp RING0_CODE_SELECTOR:_start_long
 
 bits 64
