@@ -30,7 +30,16 @@ save_context:
   push rsi
   push rdi
   lea rdi, [rsp]                ; exception_frame
-  jmp irq_entry
+  call irq_entry
+  pop rdi
+  pop rsi
+  pop rbp
+  pop rbx
+  pop rdx
+  pop rcx
+  pop rax
+  add rsp, 16                   ; error code / vector
+  iretq
 
 irq_entry_start:
   gen_entry 0

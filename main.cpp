@@ -16,6 +16,7 @@ void start()
   print_string(">>> Setting up IDT.\n");
   setup_idt();
 
-  // Try out an exception.
-  asm volatile ("ud2");
+  print_string(">>> Causing an exception.\n");
+  asm volatile ("lea 1f, %%rdi ; ud2 ; 1:" ::: "rdi");
+  print_string(">>> We're back!\n");
 }

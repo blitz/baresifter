@@ -35,16 +35,21 @@ align 4
   dd -(3h + 1BADB002h)          ; checksum
 
 align 8
+
+  ; The GDT has some unused fields to make the selectors match the GDT we load
+  ; later.
 _boot_gdt:
   dw _boot_gdt_end - _boot_gdt - 1
   dd _boot_gdt
   dw 0
+  dq 0
   dq 0x00a09b0000000000         ; Code
+  dq 0
   dq 0x00a0930000000000         ; Data
 _boot_gdt_end:
 
-%define RING0_CODE_SELECTOR 0x08
-%define RING0_DATA_SELECTOR 0x10
+%define RING0_CODE_SELECTOR 0x10
+%define RING0_DATA_SELECTOR 0x20
 
 _start:
 

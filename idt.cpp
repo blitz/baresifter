@@ -115,6 +115,9 @@ void setup_idt()
   // Load a new GDT that also includes a task gate.
   asm volatile ("lgdt %0" :: "m" (gdtr));
 
+  // Our selectors are already correct, because we use the same ones as in the
+  // boot GDT.
+
   // Point the task register to the newly created task gate, so the CPU knows
   // where to find stacks for exception/interrupt handling.
   asm volatile ("ltr %0" :: "r" ((uint16_t)ring0_tss_selector));
@@ -130,8 +133,13 @@ void setup_idt()
 void irq_entry(exception_frame &ef)
 {
   print_string("!!! exception "); print_hex(ef.vector);
-  print_string(" at rip="); print_hex(ef.rip);
+  print_string(" at "); print_hex(ef.cs); print_string(":"); print_hex(ef.rip);
   print_char('\n');
 
-  wait_forever();
+  // XXX Remove this.
+  if (ef.vector == 6) {
+    ef.rip = ef.rdi;
+  } else {
+    wait_forever();
+  }
 }

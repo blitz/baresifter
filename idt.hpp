@@ -22,4 +22,4 @@ struct exception_frame {
 
 void setup_idt();
 
-extern "C" [[noreturn]] void irq_entry(exception_frame &);
+extern "C" void irq_entry(exception_frame &);
