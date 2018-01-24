@@ -15,7 +15,7 @@
 
 bits 32
 
-extern start, _image_start
+extern start, _image_start, wait_forever
 global _start
 
 section .bss
@@ -102,8 +102,5 @@ _start_long:
   mov gs, eax
 
   lea rsp, [kern_stack_end]
-  call start
-_dead:
-  cli
-  hlt
-  jmp _dead
+  push wait_forever
+  jmp start

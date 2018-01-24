@@ -15,6 +15,8 @@ baresifter = bare_env.Program(target="baresifter.elf64",
                                   "main.cpp",
                                   "idt.cpp",
                                   "io.cpp",
+                                  "util.cpp",
+                                  "x86.cpp",
                               ])
 Depends(baresifter, "standalone.lds")
 

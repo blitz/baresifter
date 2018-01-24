@@ -1,7 +1,7 @@
 #include <cstdint>
 
-#include "io.hpp"
 #include "idt.hpp"
+#include "util.hpp"
 
 extern "C" void start();
 extern "C" void (*_init_array_start[])();
