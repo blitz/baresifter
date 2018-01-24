@@ -13,10 +13,10 @@
 %define CR0_PE (1 << 0)
 %define CR0_PG (1 << 31)
 
-  bits 32
+bits 32
 
-  extern start, _image_start
-  global _start
+extern start, _image_start
+global _start
 
 section .bss
 align PAGE_SIZE
@@ -37,7 +37,6 @@ align 4
 align 8
 _boot_gdt:
   dq 0
-  ; TODO Nice constants please
   dq 0x00a09b0000000000         ; Code
   dq 0x00a0930000000000         ; Data
 _boot_gdt_end:
@@ -88,8 +87,8 @@ _start:
   lgdt [_boot_gdt_ptr]
   jmp RING0_CODE_SELECTOR:_start_long
 
-  bits 64
-  default rel
+bits 64
+default rel
 _start_long:
 
   mov eax, RING0_DATA_SELECTOR
