@@ -9,7 +9,7 @@ global irq_entry_start, irq_entry_end
   ; stack frame, i.e. pushes a dummy error code if the processor did not.
 %macro gen_entry 1-2 0          ; number has-error-code
 irq_entry_%1:
-  %ifn %2
+  %if %2
   ; Two-byte NOP
   xchg ax, ax
   %else
@@ -29,7 +29,7 @@ save_context:
   push rbp
   push rsi
   push rdi
-  lea rdi, [rsp - 8*8]
+  lea rdi, [rsp]                ; exception_frame
   jmp irq_entry
 
 irq_entry_start:

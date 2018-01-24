@@ -127,8 +127,11 @@ void setup_idt()
   asm volatile ("lidt %0" :: "m" (idtr));
 }
 
-void irq_entry()
+void irq_entry(exception_frame &ef)
 {
-  print_string(">>> br0ken...\n");
+  print_string("!!! exception "); print_hex(ef.vector);
+  print_string(" at rip="); print_hex(ef.rip);
+  print_char('\n');
+
   wait_forever();
 }

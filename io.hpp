@@ -4,6 +4,8 @@
 
 void print_char(char c);
 void print_string(const char *s);
+void print_hex(uint64_t v);
+
 inline void assert(bool cnd, const char *s)
 {
   if (not cnd) {

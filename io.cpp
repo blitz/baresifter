@@ -15,3 +15,19 @@ void print_string(const char *str)
   for (; *str; str++)
     print_char(*str);
 }
+
+void print_hex(uint64_t v) {
+  static const char hexdigit[] = "0123456789ABCDEF";
+
+  char output[16];
+  char *p = output;
+
+  do {
+    *(p++) = hexdigit[v & 0xF];
+    v = v >> 4;
+  } while (v != 0);
+
+  do {
+    print_char(*(--p));
+  } while (p != output);
+}
