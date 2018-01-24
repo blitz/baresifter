@@ -1,2 +1,3 @@
 # baresifter
-A sand sifter injector running on baremetal
+
+Nothing to see here yet.
