@@ -1,8 +1,13 @@
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 
 #define unlikely(x) __builtin_expect(!!x, 0)
+
+// Return the number of entries of a C-style array.
+template <typename T, size_t N>
+constexpr size_t array_size(T(&)[N]) { return N; }
 
 void print_char(char c);
 void print_string(const char *s);

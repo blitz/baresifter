@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 
 // Task State Segment
@@ -93,6 +94,34 @@ struct idt_desc {
     return i;
   }
 };
+
+// Descriptor table register (GDTR/LDTR)
+template <typename DESC>
+struct dtr {
+  uint16_t length;
+  DESC const *descp;
+
+  template <size_t N>
+  dtr(DESC (&descp_)[N])
+    : length(N * sizeof(DESC) - 1),
+      descp(descp_)
+  {}
+} __attribute__((packed));
+
+inline void lidt(dtr<idt_desc> const &idtr)
+{
+  asm volatile ("lidt %0" :: "m" (idtr));
+}
+
+inline void lgdt(dtr<gdt_desc> const &gdtr)
+{
+  asm volatile ("lgdt %0" :: "m" (gdtr));
+}
+
+inline void ltr(uint16_t selector)
+{
+  asm volatile ("ltr %0" :: "r" ((uint16_t)selector));
+}
 
 // Immediate 8-bit OUT operation
 template <int PORT>
