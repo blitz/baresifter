@@ -4,7 +4,7 @@ bare_env = Environment(CXX="clang++",
                        AS="nasm",
                        LINK="clang++",
                        CCFLAGS="-Wall -Os -flto -g -pipe -march=haswell -ffreestanding -mno-red-zone -mno-mmx -mno-sse -mno-avx -mno-avx2",
-                       CXXFLAGS="-std=c++14 -fno-threadsafe-statics -fno-rtti -fno-exceptions",
+                       CXXFLAGS="-std=c++17 -fno-threadsafe-statics -fno-rtti -fno-exceptions",
                        ASFLAGS="-g -F dwarf -O5 -felf64",
                        LINKFLAGS="-flto -nostdlib -g -Wl,-T,standalone.lds -Wl,-N")
 
