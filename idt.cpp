@@ -42,9 +42,7 @@ void setup_idt()
 
 void irq_entry(exception_frame &ef)
 {
-  print_string("!!! exception "); print_hex(ef.vector);
-  print_string(" at "); print_hex(ef.cs); print_string(":"); print_hex(ef.rip);
-  print_char('\n');
+  format("!!! exception ", ef.vector, " at ", ef.cs, ":", ef.rip, "\n");
 
   // XXX Remove this.
   if (ef.vector == 6) {

@@ -9,9 +9,23 @@
 template <typename T, size_t N>
 constexpr size_t array_size(T(&)[N]) { return N; }
 
-void print_char(char c);
-void print_string(const char *s);
-void print_hex(uint64_t v);
+void print(const char *s);
+void print(uint64_t v);
+
+template <typename T>
+void format(T const &t)
+{
+  print(t);
+}
+
+// TODO This bloats the binary a bit for clang++ with LTO, because everyting
+// including the print functions are inlined.
+template <typename FIRST, typename SECOND, typename... REST>
+void format(FIRST const &f, SECOND const &s, REST const &... r)
+{
+  print(f);
+  format((s), r...);
+}
 
 [[noreturn]] void fail_assert(const char *s);
 
