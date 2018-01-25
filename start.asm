@@ -16,14 +16,10 @@
 bits 32
 
 extern start, _image_start, wait_forever
+extern boot_pml4, boot_pdpt, boot_pd
 global _start
 
 section .bss
-align PAGE_SIZE
-  boot_pml4 resq 512
-  boot_pdpt resq 512
-  boot_pd   resq 512
-
   kern_stack resb 4 * PAGE_SIZE
 kern_stack_end:
 

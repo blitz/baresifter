@@ -1,6 +1,7 @@
 #include <cstdint>
 
 #include "idt.hpp"
+#include "paging.hpp"
 #include "util.hpp"
 
 extern "C" void start();
@@ -16,7 +17,6 @@ void start()
   format(">>> Setting up IDT.\n");
   setup_idt();
 
-  format(">>> Causing an exception.\n");
-  asm volatile ("lea 1f, %%rdi ; ud2 ; 1:" ::: "rdi");
-  format(">>> We're back!\n");
+  format(">>> Setting up paging.\n");
+  setup_paging();
 }

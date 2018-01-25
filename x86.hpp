@@ -136,3 +136,10 @@ inline void outb(uint16_t port, uint8_t data)
 {
   asm volatile ("outb %%al, (%%dx)" :: "d" (port), "a" (data));
 }
+
+inline uint64_t get_cr2()
+{
+  uint64_t v;
+  asm ("mov %%cr2, %0" : "=r" (v));
+  return v;
+}

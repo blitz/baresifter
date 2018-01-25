@@ -56,15 +56,15 @@ irq_entry_start:
   gen_entry 11, 1
   gen_entry 12, 1
   gen_entry 13, 1
-  gen_entry 14
+  gen_entry 14, 1
   gen_entry 15
 
   gen_entry 16
   gen_entry 17, 1
   gen_entry 18
-  gen_entry 19, 1
+  gen_entry 19
   gen_entry 20
-  gen_entry 21, 1
+  gen_entry 21
   gen_entry 22
   gen_entry 23
   gen_entry 24

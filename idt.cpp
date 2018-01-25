@@ -42,12 +42,14 @@ void setup_idt()
 
 void irq_entry(exception_frame &ef)
 {
-  format("!!! exception ", ef.vector, " at ", ef.cs, ":", ef.rip, "\n");
+  format("!!! exception ", ef.vector, " (", ef.error_code, ") at ", ef.cs, ":", ef.rip, "\n");
 
-  // XXX Remove this.
-  if (ef.vector == 6) {
-    ef.rip = ef.rdi;
-  } else {
-    wait_forever();
+
+  switch (ef.vector) {
+  case 14:
+    format("!!! CR2 ", get_cr2(), "\n");
+    break;
   }
+
+  wait_forever();
 }

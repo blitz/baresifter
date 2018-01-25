@@ -25,6 +25,7 @@ void print(uint64_t v) {
     v = v >> 4;
   } while (v != 0);
 
+  print("0x");
   do {
     print_char(*(--p));
   } while (p != output);

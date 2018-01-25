@@ -9,15 +9,7 @@ bare_env = Environment(CXX="clang++",
                        LINKFLAGS="-flto -nostdlib -g -Wl,-T,standalone.lds -Wl,-N")
 
 baresifter = bare_env.Program(target="baresifter.elf64",
-                              source = [
-                                  "start.asm",
-                                  "entry.asm",
-                                  "main.cpp",
-                                  "idt.cpp",
-                                  "io.cpp",
-                                  "util.cpp",
-                                  "x86.cpp",
-                              ])
+                              source = Glob("*.asm") + Glob("*.cpp"))
 Depends(baresifter, "standalone.lds")
 
 Command("baresifter.elf32", baresifter, "objcopy -O elf32-i386 $SOURCE $TARGET")
