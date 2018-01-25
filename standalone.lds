@@ -4,7 +4,8 @@ ENTRY(_start)
 EXTERN(_start)
 
 PHDRS {
-      rwx PT_LOAD ;
+      rx PT_LOAD FILEHDR PHDRS;
+      rw PT_LOAD;
 }
 
 SECTIONS
@@ -14,7 +15,6 @@ SECTIONS
       /* 2 MB */
       . = 0x200000;
       _image_start = .;
-
       . += SIZEOF_HEADERS;
 
       .text :
@@ -22,31 +22,30 @@ SECTIONS
         *(.text._start)
         *(.text .text.*);
         *(.rodata .rodata.*);
-      } : rwx
+        *(.note.gnu.build-id);
 
-      .init_array :
-      {
+        . = ALIGN(8);
         _init_array_start = .;
         KEEP(SORT_BY_INIT_PRIORITY(*)(.init_array.*))
         KEEP(*(.init_array))
         _init_array_end = .;
-      } : rwx
+      } : rx
 
       .data :
       {
         *(.data .data.*);
-      }
+      } : rw
 
       .bss :
       {
         *(.bss  .bss.*);
-        . = ALIGN(0x200000);
-        _image_end = .;
-      }
+      } : rw
+
+      . = ALIGN(0x200000);
+      _image_end = .;
 
       /DISCARD/ :
       {
-        *(.not.GNU-stack)
         *(.comment)
       }
 }
