@@ -19,7 +19,3 @@ struct exception_frame {
   uint64_t rsp;
   uint64_t ss;
 };
-
-void setup_idt();
-
-extern "C" void irq_entry(exception_frame &);

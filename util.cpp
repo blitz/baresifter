@@ -1,6 +1,9 @@
 #include "util.hpp"
 #include "x86.hpp"
 
+extern "C" void (*_init_array_start[])();
+extern "C" void (*_init_array_end[])();
+
 static constexpr uint16_t qemu_debug_port = 0xe9;
 
 static void print_char(char c)
@@ -41,4 +44,10 @@ void wait_forever()
 {
   while (true)
     asm volatile ("cli ; hlt");
+}
+
+void execute_constructors()
+{
+  for (auto p = _init_array_start; p < _init_array_end; p++)
+    (*p)();
 }

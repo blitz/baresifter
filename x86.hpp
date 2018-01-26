@@ -54,16 +54,32 @@ struct gdt_desc {
   static gdt_desc kern_code_desc()
   {
     gdt_desc t;
-    t.type_dpl = (1 << 7 /* P */) | 0b11011;
-    t.limit_flags = 0b1010 << 4;
+    t.type_dpl = 0b10011011;
+    t.limit_flags = 0b10100000;
     return t;
   }
 
   static gdt_desc kern_data_desc()
   {
     gdt_desc t;
-    t.type_dpl = (1 << 7 /* P */) | 0b10011;
-    t.limit_flags = 0b1010 << 4;
+    t.type_dpl = 0b10010011;
+    t.limit_flags = 0b10100000;
+    return t;
+  }
+
+  static gdt_desc user_code_desc()
+  {
+    gdt_desc t;
+    t.type_dpl = 0b11111011;
+    t.limit_flags = 0b10100000;
+    return t;
+  }
+
+  static gdt_desc user_data_desc()
+  {
+    gdt_desc t;
+    t.type_dpl = 0b11110011;
+    t.limit_flags = 0b10100000;
     return t;
   }
 };

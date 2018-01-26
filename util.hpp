@@ -38,3 +38,6 @@ inline void assert(bool cnd, const char *s)
 
 // Disable interrupts and halt the CPU.
 extern "C" [[noreturn]] void wait_forever();
+
+// Execute constructors
+void execute_constructors();

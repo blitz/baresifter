@@ -24,7 +24,7 @@ page_align uint64_t boot_pml4[512];
 page_align uint64_t boot_pdpt[512]; // Covers 0 - 512GB
 page_align uint64_t boot_pd[512];   // Covers 0 - 1GB
 
-static page_align uint64_t user_pt[512];
+page_align static uint64_t user_pt[512];
 
 static uint64_t bit_select(int high, int low, uint64_t value)
 {
@@ -36,5 +36,7 @@ void setup_paging()
   boot_pd[bit_select(30, 21, (uintptr_t)get_user_page())] = (uintptr_t)user_pt | PTE_P | PTE_U;
   user_pt[bit_select(21, 12, (uintptr_t)get_user_page())] = (uintptr_t)get_user_page() | PTE_P | PTE_U;
 
-  // No TLB invalidation necessary, because we only created new entries.
+  // No TLB invalidation necessary, because we only created new entries. But we
+  // need to make sure the compiler actually writes the values.
+  asm volatile ("" ::: "memory");
 }
