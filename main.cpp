@@ -19,4 +19,6 @@ void start()
 
   format(">>> Setting up paging.\n");
   setup_paging();
+
+  format(">>> Done!\n");
 }
