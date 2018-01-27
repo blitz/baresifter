@@ -78,21 +78,16 @@ static void execute_user(void const *rip)
 
   // Prepare our stack to call irq_exit and exit to user space. We save a
   // continuation so we return here after an exception.
-  asm ("lea %2, %%rdi\n"
-       "push %%rbp\n"
-       // Can't touch stack variables now, because we modified RSP.
-       "lea 1f, %%eax\n"
+  asm ("lea 1f, %%eax\n"
        "mov %%eax, %1\n"
        "mov %%rsp, %0\n"
-       "mov %%rdi, %%rsp\n"
+       "lea %2, %%rsp\n"
        "jmp irq_exit\n"
-       "1: pop %%rbp\n" : "=m" (tss.rsp[0]), "=m" (ring0_continuation) : "m" (user)
-       // Everything is clobbered, because we come back via irq_entry. RBP can
-       // not be clobbered and has to be saved manually.
+       "1:\n" : "=m" (tss.rsp[0]), "=m" (ring0_continuation) : "m" (user)
+       // Everything is clobbered, because we come back via irq_entry.
        : "rax", "rcx", "rdx", "rbx", "rsi", "rdi",
-         "r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15");
+         "r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15", "rbp");
 }
-
 
 void start()
 {
