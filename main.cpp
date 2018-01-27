@@ -92,7 +92,6 @@ static void execute_user(void const *rip)
 
 void start()
 {
-  execute_constructors();
   print_logo();
 
   format(">>> Setting up IDT.\n");

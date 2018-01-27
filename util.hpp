@@ -40,4 +40,4 @@ inline void assert(bool cnd, const char *s)
 extern "C" [[noreturn]] void wait_forever();
 
 // Execute constructors
-void execute_constructors();
+extern "C" void execute_constructors();
