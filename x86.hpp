@@ -159,3 +159,10 @@ inline uint64_t get_cr2()
   asm ("mov %%cr2, %0" : "=r" (v));
   return v;
 }
+
+inline uint64_t rdtsc()
+{
+  uint32_t hi, lo;
+  asm volatile ("rdtsc" : "=a" (lo), "=d" (hi));
+  return (uint64_t)hi << 32 | lo;
+}
