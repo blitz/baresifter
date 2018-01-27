@@ -2,6 +2,7 @@
 
 #include "entry.hpp"
 #include "exception_frame.hpp"
+#include "logo.hpp"
 #include "paging.hpp"
 #include "selectors.hpp"
 #include "util.hpp"
@@ -91,8 +92,8 @@ static void execute_user(void const *rip)
 
 void start()
 {
-  format(">>> Executing constructors.\n");
   execute_constructors();
+  print_logo();
 
   format(">>> Setting up IDT.\n");
   setup_idt();

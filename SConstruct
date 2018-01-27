@@ -8,6 +8,9 @@ bare_env = Environment(CXX="clang++",
                        ASFLAGS="-g -F dwarf -O5 -felf64",
                        LINKFLAGS="-flto -nostdlib -g -Xlinker -T")
 
+version_inc = Command("version.inc", [], "git describe --always --dirty | sed -E 's/^(.*)$/\"\\1\"/' > $TARGET")
+AlwaysBuild(version_inc)
+
 baresifter = bare_env.Program(target="baresifter.elf64",
                               source = ["standalone.lds"] + Glob("*.asm") + Glob("*.cpp"))
 

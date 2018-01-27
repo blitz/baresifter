@@ -1,4 +1,5 @@
 /.scons*
+/version.inc
 *~
 *.o
 *.elf32
