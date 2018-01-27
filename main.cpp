@@ -45,23 +45,54 @@ static void setup_idt()
   lidt(idt);
 }
 
+static void *ring0_continuation = nullptr;
+
 void irq_entry(exception_frame &ef)
 {
-  if (unlikely(ef.cs & 0x3)) {
-    format("!!! ring0 exception ", ef.vector, " (", ef.error_code, ") at ", ef.cs, ":", ef.rip, "\n");
-    switch (ef.vector) {
-    case 14:
-      format("!!! CR2 ", get_cr2(), "\n");
-      break;
-    }
+  format("!!! exception ", ef.vector, " (", ef.error_code, ") at ", ef.cs, ":", ef.rip, "\n");
+  format("!!! CR2 ", get_cr2(), "\n");
 
-    format("!!! We're dead...\n");
-    wait_forever();
+  if ((ef.cs & 3) and ring0_continuation) {
+    format("!!! User space fault: returning to ", (uintptr_t)ring0_continuation, "\n");
+    auto ret = ring0_continuation;
+    ring0_continuation = nullptr;
+
+    asm ("mov %0, %%rsp\n"
+         "jmp *%1\n"
+         :: "r" (tss.rsp[0]), "r" (ret));
+    __builtin_unreachable();
   }
 
-  format("??? User space fault?\n");
+  format("!!! We're dead...\n");
   wait_forever();
 }
+
+static void execute_user(void const *rip)
+{
+  exception_frame user {};
+
+  user.cs = ring3_code_selector;
+  user.rip = (uintptr_t)rip;
+  user.ss = ring3_data_selector;
+  user.rflags = 2;
+
+  // Prepare our stack to call irq_exit and exit to user space. We save a
+  // continuation so we return here after an exception.
+  asm ("lea %2, %%rdi\n"
+       "push %%rbp\n"
+       // Can't touch stack variables now, because we modified RSP.
+       "lea 1f, %%eax\n"
+       "mov %%eax, %1\n"
+       "mov %%rsp, %0\n"
+       "mov %%rdi, %%rsp\n"
+       "jmp irq_exit\n"
+       "1: pop %%rbp\n" : "=m" (tss.rsp[0]), "=m" (ring0_continuation) : "m" (user)
+       // Everything is clobbered, because we come back via irq_entry. RBP can
+       // not be clobbered and has to be saved manually.
+       : "rax", "rcx", "rdx", "rbx", "rsi", "rdi",
+         "r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15");
+}
+
 
 void start()
 {
@@ -73,6 +104,16 @@ void start()
 
   format(">>> Setting up paging.\n");
   setup_paging();
+
+  format(">>> Executing user code.\n");
+
+  char *u = get_user_page();
+  u[0] = 0x31; u[1] = 0xc0;     // xor eax, eax
+  u[2] = 0x8e; u[3] = 0xd8;     // mov eax, ds
+  u[4] = 0x0f; u[5] = 0x30;     // wrmsr
+  execute_user(get_user_page() + 0);
+
+  execute_user(get_user_page() + 4096 - 2);
 
   format(">>> Done!\n");
 }

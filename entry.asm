@@ -3,7 +3,7 @@
 bits 64
 section .text
 extern irq_entry
-global irq_entry_start, irq_entry_end
+global irq_entry_start, irq_entry_end, irq_exit
 
   ; Generate an interrupt entry function that takes care of normalizing the
   ; stack frame, i.e. pushes a dummy error code if the processor did not.
@@ -29,8 +29,28 @@ save_context:
   push rbp
   push rsi
   push rdi
+
+  push r8
+  push r9
+  push r10
+  push r11
+  push r12
+  push r13
+  push r14
+  push r15
+
   lea rdi, [rsp]                ; exception_frame
   call irq_entry
+irq_exit:
+  pop r15
+  pop r14
+  pop r13
+  pop r12
+  pop r11
+  pop r10
+  pop r9
+  pop r8
+
   pop rdi
   pop rsi
   pop rbp

@@ -17,7 +17,7 @@ bits 32
 
 extern start, _image_start, wait_forever
 extern boot_pml4, boot_pdpt, boot_pd
-global _start
+global _start, kern_stack
 
 section .bss
   kern_stack resb 4 * PAGE_SIZE
