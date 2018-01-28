@@ -171,6 +171,7 @@ static void self_test_instruction_length()
     { 1, { 0xCC } },            // int3
     { 2, { 0xCD, 0x01 } },      // int 0x01
     { 2, { 0x00, 0x00 } },      // add [rax], al
+    { 2, { 0xEB, 00 } },        // jmp 0x2
 
     // lock add qword cs:[eax+4*eax+07e06df23h], 0efcdab89h
     { 15, { 0x2e, 0x67, 0xf0, 0x48,
@@ -229,6 +230,10 @@ void start()
     memset(current.raw + attempt.length, 0, sizeof(current.raw) - attempt.length);
 
     // Something interesting has happened, start searching from the end again.
+    //
+    // TODO Consider switching from #PF to #GP not interesting, because
+    // instructions like fxsave switch between the two depending on whether
+    // their memory operand is aligned.
     if (last_attempt != attempt) {
       inc_pos = attempt.length - 1;
 
