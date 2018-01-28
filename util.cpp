@@ -17,18 +17,27 @@ void print(const char *str)
     print_char(*str);
 }
 
-void print(uint64_t v) {
+void print(formatted_int const &v) {
   static const char hexdigit[] = "0123456789ABCDEF";
+  assert(v.base <= sizeof(hexdigit), "Invalid base");
 
-  char output[16];
+  char output[64];
+  assert(v.width <= sizeof(output), "Invalid width");
+
   char *p = output;
+  uint64_t value = v.v;
+  unsigned width = v.width;
 
   do {
-    *(p++) = hexdigit[v & 0xF];
-    v = v >> 4;
-  } while (v != 0);
+    *(p++) = hexdigit[value % v.base];
+    if (width) width--;
 
-  print("0x");
+    value = value / v.base;
+  } while (value != 0 or width);
+
+  if (v.prefix)
+    print("0x");
+
   do {
     print_char(*(--p));
   } while (p != output);

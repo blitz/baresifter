@@ -10,7 +10,24 @@ template <typename T, size_t N>
 constexpr size_t array_size(T(&)[N]) { return N; }
 
 void print(const char *s);
-void print(uint64_t v);
+
+struct formatted_int {
+  uint64_t v;
+  unsigned base;
+  unsigned width;
+  bool prefix;
+
+  formatted_int(uint64_t v_, unsigned base_ = 10, unsigned width_ = 0, bool prefix_ = false)
+    : v(v_), base(base_), width(width_), prefix(prefix_) {}
+};
+
+inline formatted_int hex(uint64_t v, unsigned width = 0, bool prefix = true)
+{
+  return { v, 16, width, prefix };
+}
+
+//void print(uint64_t v);
+void print(formatted_int const &v);
 
 template <typename T>
 void format(T const &t)

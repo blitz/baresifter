@@ -133,7 +133,6 @@ static size_t find_instruction_length(instruction const &instr)
     memcpy(instr_start, instr.raw, i);
 
     auto ef = execute_user(instr_start);
-    format("Size ", i, ": error ", ef.vector, " code ", ef.error_code, " CR2 ", get_cr2(), "\n");
 
     bool incomplete_instruction_fetch = (ef.vector == 14 and
                                          (ef.error_code & 0b10101 /* user space instruction fetch */) == 0b10100 and
@@ -143,7 +142,8 @@ static size_t find_instruction_length(instruction const &instr)
       return i;
   }
 
-  return ~0UL;
+  format("Could not find instruction length?\n");
+  wait_forever();
 }
 
 static void self_test_instruction_length()
@@ -175,6 +175,18 @@ static void self_test_instruction_length()
   format("Self test: ", (success ? "OK" : "b0rken!"), "\n");
 }
 
+static void print_instruction(instruction const &instr, size_t length)
+{
+  // Prefix instruction, so it's easy to grep output.
+  format("I");
+
+  for (size_t i = 0; i < length; i++) {
+    format(" ", hex(instr.raw[i], 2, false));
+  }
+
+  format("\n");
+}
+
 void start()
 {
   print_logo();
@@ -187,6 +199,40 @@ void start()
 
   format(">>> Executing self test.\n");
   self_test_instruction_length();
+
+  format(">>> Probing instruction space.\n");
+
+  instruction current;
+  size_t last_length = 0;
+  size_t inc_pos = 0;
+
+  while (true) {
+    size_t length = find_instruction_length(current);
+
+    // Clear unused bytes.
+    memset(current.raw + length, 0, sizeof(current.raw) - length);
+
+    // Something interesting has happened, start searching from the end again.
+    if (last_length != length) {
+      //format("Length difference! Incrementing at ", length - 1, "\n");
+      inc_pos = length - 1;
+
+      print_instruction(current, length);
+    }
+
+    current.raw[inc_pos]++;
+    if (current.raw[inc_pos] == 0) {
+      // We've wrapped at our current position, so go left one byte. If we hit
+      // the beginning, we are done.
+      if (inc_pos-- == 0) {
+        break;
+      }
+
+      current.raw[inc_pos]++;
+    }
+
+    last_length = length;
+  }
 
   format(">>> Done!\n");
 }
