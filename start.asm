@@ -3,6 +3,7 @@
 %define PAGE_SIZE 4096
 %define IA32_EFER 0xC0000080
 %define IA32_EFER_LME 0x100
+%define IA32_EFER_NXE 0x800
 
 %define PTE_P (1 << 0)
 %define PTE_W (1 << 1)
@@ -10,6 +11,7 @@
 %define PTE_PS (1 << 7)
 
 %define CR4_PAE (1 << 5)
+%define CR4_SMEP (1 << 20)      ; Available since Ivy Bridge
 %define CR0_PE (1 << 0)
 %define CR0_PG (1 << 31)
 
@@ -75,7 +77,7 @@ _start:
   mov cr4, eax
 
   xor edx, edx
-  mov eax, IA32_EFER_LME
+  mov eax, IA32_EFER_LME | IA32_EFER_NXE
   mov ecx, IA32_EFER
   wrmsr
 

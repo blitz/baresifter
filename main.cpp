@@ -1,10 +1,12 @@
 #include <cstdint>
+#include <initializer_list>
 
 #include "entry.hpp"
 #include "exception_frame.hpp"
 #include "logo.hpp"
 #include "paging.hpp"
 #include "selectors.hpp"
+#include "stdlib.hpp"
 #include "util.hpp"
 #include "x86.hpp"
 
@@ -89,7 +91,7 @@ static exception_frame execute_user(void const *rip)
   user.cs = ring3_code_selector;
   user.rip = (uintptr_t)rip;
   user.ss = ring3_data_selector;
-  user.rflags = 2;
+  user.rflags = (1 /* TF */ << 8) | 2;
 
   ring3_exception_frame = &user;
 
@@ -112,6 +114,67 @@ static exception_frame execute_user(void const *rip)
   return user;
 }
 
+struct instruction {
+  // x86 instructions are at most 15 bytes long.
+  uint8_t raw[15];
+
+  template <typename... T>
+  constexpr instruction(T... v)
+  : raw {(uint8_t)v...}
+  {}
+};
+
+static size_t find_instruction_length(instruction const &instr)
+{
+  char * const user_page = get_user_page();
+
+  for (size_t i = 1; i <= array_size(instr.raw); i++) {
+    char * const instr_start = user_page + page_size - i;
+    memcpy(instr_start, instr.raw, i);
+
+    auto ef = execute_user(instr_start);
+    format("Size ", i, ": error ", ef.vector, " code ", ef.error_code, " CR2 ", get_cr2(), "\n");
+
+    bool incomplete_instruction_fetch = (ef.vector == 14 and
+                                         (ef.error_code & 0b10101 /* user space instruction fetch */) == 0b10100 and
+                                         get_cr2() == (uintptr_t)user_page + page_size);
+
+    if (not incomplete_instruction_fetch)
+      return i;
+  }
+
+  return ~0UL;
+}
+
+static void self_test_instruction_length()
+{
+  struct {
+    size_t length;
+    instruction instr;
+  } tests[] {
+    { 1, { 0x90 } },            // nop
+    { 1, { 0xCC } },            // int3
+    { 2, { 0xCD, 0x01 } },      // int 0x01
+    { 2, { 0x00, 0x00 } },      // add [rax], al
+
+    // lock add qword cs:[eax+4*eax+07e06df23h], 0efcdab89h
+    { 15, { 0x2e, 0x67, 0xf0, 0x48,
+            0x81, 0x84, 0x80, 0x23,
+            0xdf, 0x06, 0x7e, 0x89,
+            0xab, 0xcd, 0xef }},
+  };
+
+  bool success = true;
+
+  for (auto const &test : tests) {
+    size_t len = find_instruction_length(test.instr);
+    if (len != test.length)
+      success = false;
+  }
+
+  format("Self test: ", (success ? "OK" : "b0rken!"), "\n");
+}
+
 void start()
 {
   print_logo();
@@ -122,19 +185,8 @@ void start()
   format(">>> Setting up paging.\n");
   setup_paging();
 
-  format(">>> Executing user code.\n");
-
-  uint64_t begin, end;
-  const size_t repetitions = 32 * 1024;
-
-  begin = rdtsc();
-  for (size_t i = 0; i < repetitions; i++)
-    execute_user(get_user_page());
-  end = rdtsc();
-
-  format(">>> Ticks per user space fault (very rough!): ", (end - begin) / repetitions, "\n");
-
-  format(">>> User space exception: ", execute_user(get_user_page() + 4096 - 2).vector, "\n");
+  format(">>> Executing self test.\n");
+  self_test_instruction_length();
 
   format(">>> Done!\n");
 }
