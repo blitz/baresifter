@@ -10,6 +10,31 @@
 #include "util.hpp"
 #include "x86.hpp"
 
+struct instruction {
+  // x86 instructions are at most 15 bytes long.
+  uint8_t raw[15];
+
+  template <typename... T>
+  constexpr instruction(T... v)
+  : raw {(uint8_t)v...}
+  {}
+};
+
+struct execution_attempt {
+  uint8_t length = 0;
+  uint8_t exception = 0;
+};
+
+bool operator==(execution_attempt const &a, execution_attempt const &b)
+{
+  return a.length == b.length and a.exception == b.exception;
+}
+
+bool operator!=(execution_attempt const &a, execution_attempt const &b)
+{
+  return not (a == b);
+}
+
 extern "C" void irq_entry(exception_frame &);
 extern "C" void start();
 
@@ -114,17 +139,7 @@ static exception_frame execute_user(void const *rip)
   return user;
 }
 
-struct instruction {
-  // x86 instructions are at most 15 bytes long.
-  uint8_t raw[15];
-
-  template <typename... T>
-  constexpr instruction(T... v)
-  : raw {(uint8_t)v...}
-  {}
-};
-
-static size_t find_instruction_length(instruction const &instr)
+static execution_attempt find_instruction_length(instruction const &instr)
 {
   char * const user_page = get_user_page();
 
@@ -139,7 +154,7 @@ static size_t find_instruction_length(instruction const &instr)
                                          get_cr2() == (uintptr_t)user_page + page_size);
 
     if (not incomplete_instruction_fetch)
-      return i;
+      return { (uint8_t)i, (uint8_t)ef.vector };
   }
 
   format("Could not find instruction length?\n");
@@ -167,20 +182,21 @@ static void self_test_instruction_length()
   bool success = true;
 
   for (auto const &test : tests) {
-    size_t len = find_instruction_length(test.instr);
-    if (len != test.length)
+    auto attempt = find_instruction_length(test.instr);
+    if (attempt.length != test.length)
       success = false;
   }
 
   format("Self test: ", (success ? "OK" : "b0rken!"), "\n");
 }
 
-static void print_instruction(instruction const &instr, size_t length)
+static void print_instruction(instruction const &instr,
+                              execution_attempt const &attempt)
 {
   // Prefix instruction, so it's easy to grep output.
-  format("I");
+  format("E ", hex(attempt.exception, 2, false), " I");
 
-  for (size_t i = 0; i < length; i++) {
+  for (size_t i = 0; i < attempt.length; i++) {
     format(" ", hex(instr.raw[i], 2, false));
   }
 
@@ -203,21 +219,20 @@ void start()
   format(">>> Probing instruction space.\n");
 
   instruction current;
-  size_t last_length = 0;
+  execution_attempt last_attempt;
   size_t inc_pos = 0;
 
   while (true) {
-    size_t length = find_instruction_length(current);
+    auto attempt = find_instruction_length(current);
 
     // Clear unused bytes.
-    memset(current.raw + length, 0, sizeof(current.raw) - length);
+    memset(current.raw + attempt.length, 0, sizeof(current.raw) - attempt.length);
 
     // Something interesting has happened, start searching from the end again.
-    if (last_length != length) {
-      //format("Length difference! Incrementing at ", length - 1, "\n");
-      inc_pos = length - 1;
+    if (last_attempt != attempt) {
+      inc_pos = attempt.length - 1;
 
-      print_instruction(current, length);
+      print_instruction(current, attempt);
     }
 
     current.raw[inc_pos]++;
@@ -231,7 +246,7 @@ void start()
       current.raw[inc_pos]++;
     }
 
-    last_length = length;
+    last_attempt = attempt;
   }
 
   format(">>> Done!\n");
