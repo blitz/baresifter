@@ -1,8 +1,10 @@
 # -*- Mode: Python -*-
 
-bare_env = Environment(CXX="clang++",
+import os
+
+bare_env = Environment(CXX=os.environ.get("CXX", "clang++"),
+                       LINK=os.environ.get("CXX", "clang++"),
                        AS="nasm",
-                       LINK="clang++",
                        CCFLAGS="-Wall -Os -flto -g -pipe -march=haswell -ffreestanding -nostdinc -mno-red-zone -mno-mmx -mno-sse -mno-avx -mno-avx2 -fno-asynchronous-unwind-tables",
                        CXXFLAGS="-std=c++17 -fno-threadsafe-statics -fno-rtti -fno-exceptions",
                        ASFLAGS="-g -F dwarf -O5 -felf64",
