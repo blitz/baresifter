@@ -1,12 +1,13 @@
 #include <cstdint>
+#include <cstring>
 #include <initializer_list>
 
+#include "disassemble.hpp"
 #include "entry.hpp"
 #include "exception_frame.hpp"
 #include "logo.hpp"
 #include "paging.hpp"
 #include "selectors.hpp"
-#include "stdlib.hpp"
 #include "util.hpp"
 #include "x86.hpp"
 
@@ -84,6 +85,8 @@ static void print_exception(exception_frame const &ef)
   format("!!! exception ", ef.vector, " (", hex(ef.error_code), ") at ",
          hex(ef.cs), ":", hex(ef.rip), "\n");
   format("!!! CR2 ", hex(get_cr2()), "\n");
+  format("!!! EDI ", hex(ef.rdi), "\n");
+  format("!!! ESI ", hex(ef.rsi), "\n");
 }
 
 void irq_entry(exception_frame &ef)
@@ -189,7 +192,7 @@ static void self_test_instruction_length()
       success = false;
   }
 
-  format("Self test: ", (success ? "OK" : "b0rken!"), "\n");
+  format("Instruction length: ", (success ? "OK" : "b0rken!"), "\n");
   if (not success) {
     wait_forever();
   }
@@ -220,6 +223,7 @@ void start()
 
   format(">>> Executing self test.\n");
   self_test_instruction_length();
+  disassemble_self_test();
 
   format(">>> Probing instruction space.\n");
 
