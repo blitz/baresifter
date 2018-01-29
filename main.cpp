@@ -81,8 +81,9 @@ static void setup_idt()
 
 static void print_exception(exception_frame const &ef)
 {
-  format("!!! exception ", ef.vector, " (", ef.error_code, ") at ", ef.cs, ":", ef.rip, "\n");
-  format("!!! CR2 ", get_cr2(), "\n");
+  format("!!! exception ", ef.vector, " (", hex(ef.error_code), ") at ",
+         hex(ef.cs), ":", hex(ef.rip), "\n");
+  format("!!! CR2 ", hex(get_cr2()), "\n");
 }
 
 void irq_entry(exception_frame &ef)
@@ -189,6 +190,9 @@ static void self_test_instruction_length()
   }
 
   format("Self test: ", (success ? "OK" : "b0rken!"), "\n");
+  if (not success) {
+    wait_forever();
+  }
 }
 
 static void print_instruction(instruction const &instr,

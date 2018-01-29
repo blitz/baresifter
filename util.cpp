@@ -35,7 +35,7 @@ void print(formatted_int const &v) {
     value = value / v.base;
   } while (value != 0 or width);
 
-  if (v.prefix)
+  if (v.prefix and v.base == 16)
     print("0x");
 
   do {

@@ -9,7 +9,7 @@ bare_env = Environment(CXX=os.environ.get("CXX", "clang++"),
                        CXXFLAGS="-std=c++17 -fno-threadsafe-statics -fno-rtti -fno-exceptions",
                        ASFLAGS="-g -F dwarf -O5 -felf64",
                        CPPPATH=["#include"],
-                       LINKFLAGS="-flto -nostdlib -g -Xlinker -T")
+                       LINKFLAGS="-flto -nostdlib -g -Xlinker -n -Xlinker -T -Xlinker")
 
 version_inc = Command("version.inc", [], "git describe --always --dirty | sed -E 's/^(.*)$/\"\\1\"/' > $TARGET")
 AlwaysBuild(version_inc)

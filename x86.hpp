@@ -156,7 +156,7 @@ inline void outb(uint16_t port, uint8_t data)
 inline uint64_t get_cr2()
 {
   uint64_t v;
-  asm ("mov %%cr2, %0" : "=r" (v));
+  asm volatile ("mov %%cr2, %0" : "=r" (v));
   return v;
 }
 

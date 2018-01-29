@@ -22,7 +22,6 @@ SECTIONS
         *(.text._start)
         *(.text .text.*);
         *(.rodata .rodata.*);
-        *(.note.gnu.build-id);
 
         . = ALIGN(8);
         _init_array_start = .;
@@ -33,6 +32,7 @@ SECTIONS
 
       .data :
       {
+        *(.note.gnu.build-id);
         *(.data .data.*);
       } : rw
 
@@ -47,5 +47,6 @@ SECTIONS
       /DISCARD/ :
       {
         *(.comment)
+        *(.eh_frame)
       }
 }
