@@ -11,16 +11,6 @@
 #include "util.hpp"
 #include "x86.hpp"
 
-struct instruction {
-  // x86 instructions are at most 15 bytes long.
-  uint8_t raw[15];
-
-  template <typename... T>
-  constexpr instruction(T... v)
-  : raw {(uint8_t)v...}
-  {}
-};
-
 struct execution_attempt {
   uint8_t length = 0;
   uint8_t exception = 0;
@@ -143,7 +133,7 @@ static exception_frame execute_user(void const *rip)
   return user;
 }
 
-static execution_attempt find_instruction_length(instruction const &instr)
+static execution_attempt find_instruction_length(instruction_bytes const &instr)
 {
   char * const user_page = get_user_page();
 
@@ -169,7 +159,7 @@ static void self_test_instruction_length()
 {
   struct {
     size_t length;
-    instruction instr;
+    instruction_bytes instr;
   } tests[] {
     { 1, { 0x90 } },            // nop
     { 1, { 0xCC } },            // int3
@@ -198,7 +188,7 @@ static void self_test_instruction_length()
   }
 }
 
-static void print_instruction(instruction const &instr,
+static void print_instruction(instruction_bytes const &instr,
                               execution_attempt const &attempt)
 {
   // Prefix instruction, so it's easy to grep output.
@@ -221,13 +211,16 @@ void start()
   format(">>> Setting up paging.\n");
   setup_paging();
 
+  format(">>> Setting up Capstone.\n");
+  setup_disassembler();
+
   format(">>> Executing self test.\n");
   self_test_instruction_length();
   disassemble_self_test();
 
   format(">>> Probing instruction space.\n");
 
-  instruction current;
+  instruction_bytes current;
   execution_attempt last_attempt;
   size_t inc_pos = 0;
 

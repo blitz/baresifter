@@ -7,31 +7,34 @@
 static char heap[16 << 10];
 static size_t heap_pos = 0;
 
+// We have a primitive bump-pointer allocation. This is fine, because Capstone
+// will only allocate memory at the beginning and never release it.
 static void *malloc(size_t size)
 {
-  format("malloc: ", hex((uintptr_t)__builtin_return_address(0)), " size ", size, "\n");
-
   if (heap_pos + size > sizeof(heap)) {
-    format("Out of memory\n");
+    format("Out of memory! Need ", (heap_pos + size) - sizeof(heap), " bytes.\n");
     wait_forever();
   }
 
   size_t old_pos = heap_pos;
+
+  // Align by 8.
   heap_pos += (size + 0x7) & ~0x7;
   return &heap[old_pos];
 }
 
 static void *calloc(size_t nmemb, size_t size)
 {
-  format("calloc: ", hex((uintptr_t)__builtin_return_address(0)),
-         " nmemb ", nmemb, " size ", size, "\n");
-
   return malloc(nmemb * size);
 }
 
+#define NOT_IMPLEMENTED(n) do { \
+    format(n ": not implemented. Called by ", hex((uintptr_t)__builtin_return_address(0)), "\n"); \
+  } while (0)
+
 static void *realloc(void *, size_t)
 {
-  format("realloc: ", hex((uintptr_t)__builtin_return_address(0)), "\n");
+  NOT_IMPLEMENTED("realloc");
   return nullptr;
 }
 
@@ -39,16 +42,16 @@ static int vsnprintf(char *d, size_t n, const char *s, va_list)
 {
   // This is only called when Capstone is not built with CAPSTONE_DIET.
 
-  format("vsnprintf: ", hex((uintptr_t)__builtin_return_address(0)), "\n");
-  strncpy(d, s, n);
+  NOT_IMPLEMENTED("vsnprintf");
 
   // FIXME Very poor! This only works in the happy case.
+  strncpy(d, s, n);
   return strlen(s);;
 }
 
 static void free(void *)
 {
-  format("free: ", hex((uintptr_t)__builtin_return_address(0)), "\n");
+  NOT_IMPLEMENTED("free");
 }
 
 #define cs_check(expr) do { \
@@ -56,17 +59,12 @@ static void free(void *)
     if (__err__ != CS_ERR_OK) { format("Capstone error ", __err__, "\n"); goto fail; } \
   } while (0)
 
-void disassemble_self_test()
+static csh handle;
+static cs_insn *insn;
+
+void setup_disassembler()
 {
-  csh handle;
-
   cs_opt_mem opt_mem {};
-  static const uint8_t bytes[] = "\x48\x8b\x05\xb8\x13\x00\x00";
-  size_t count = sizeof(bytes) - 1;
-  cs_insn *insn = nullptr;
-  uint8_t const *code = bytes;
-  uint64_t address = 0x1000;
-
 
   opt_mem.malloc = malloc;
   opt_mem.calloc = calloc;
@@ -79,14 +77,46 @@ void disassemble_self_test()
 
   insn = cs_malloc(handle);
 
-  format("cs_disasm_iter\n");
-  count = cs_disasm_iter(handle, &code, &count, &address, insn);
-  format("count ", count, " id ", insn->id, " insn ", insn->mnemonic, " op ", insn->op_str, "\n");
-
-  format("Capstone: OK\n");
   return;
 
  fail:
-  format("Capstone: b0rken!\n");
+  format("Capstone did not initialize!\n");
   wait_forever();
+}
+
+decoded_instruction disassemble(instruction_bytes const &instr)
+{
+  size_t count = sizeof(instr.raw);
+  uint8_t const *code = instr.raw;
+  uint64_t address = 0;
+
+  if (cs_disasm_iter(handle, &code, &count, &address, insn)) {
+    uintptr_t length = code - instr.raw;
+    return { (enum x86_insn)insn->id, (uint8_t)length };
+  } else {
+    return { /* invalid */ };
+  }
+}
+
+void disassemble_self_test()
+{
+  static const struct {
+    instruction_bytes bytes;
+    decoded_instruction expected;
+  } tests[] {
+    { { 0x90 }, { X86_INS_NOP, 1 } },
+  };
+  bool success = true;
+
+  for (auto const &test : tests) {
+    auto res = disassemble(test.bytes);
+
+    if (res != test.expected)
+      success = false;
+  }
+
+  format("Capstone: ", (success ? "OK" : "b0rken!"), "\n");
+  if (not success) {
+    wait_forever();
+  }
 }
