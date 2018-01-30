@@ -105,6 +105,9 @@ void disassemble_self_test()
     decoded_instruction expected;
   } tests[] {
     { { 0x90 }, { X86_INS_NOP, 1 } },
+    { { 0xe9, 0x00, 0x00, 0x00, 0x00 }, { X86_INS_JMP, 5 }},
+    // XXX Known capstone issue https://github.com/aquynh/capstone/issues/776
+    //{ { 0x66, 0xe9, 0x00, 0x00, 0x00, 0x00 }, { X86_INS_JMP, 6 }},
   };
   bool success = true;
 
