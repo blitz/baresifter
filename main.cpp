@@ -2,6 +2,7 @@
 #include <cstring>
 #include <initializer_list>
 
+#include "cpuid.hpp"
 #include "disassemble.hpp"
 #include "entry.hpp"
 #include "exception_frame.hpp"
@@ -239,13 +240,11 @@ void start()
 {
   print_logo();
 
-  format(">>> Setting up IDT.\n");
+  auto sig = get_cpu_signature();
+  format(">>> CPU is ", sig.vendor, " ", hex(sig.signature, 8, false), ".\n");
+
   setup_idt();
-
-  format(">>> Setting up paging.\n");
   setup_paging();
-
-  format(">>> Setting up Capstone.\n");
   setup_disassembler();
 
   format(">>> Executing self test.\n");
