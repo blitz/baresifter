@@ -8,6 +8,7 @@
 #include "exception_frame.hpp"
 #include "logo.hpp"
 #include "paging.hpp"
+#include "prefix.hpp"
 #include "selectors.hpp"
 #include "util.hpp"
 #include "x86.hpp"
@@ -193,10 +194,11 @@ static void self_test_instruction_length()
 static void print_instruction(instruction_bytes const &instr,
                               execution_attempt const &attempt)
 {
+  auto const disasm = disassemble(instr);
+
   // Prefix instruction, so it's easy to grep output.
   format("E ", hex(attempt.exception, 2, false), " O ");
 
-  auto disasm = disassemble(instr);
   format(hex(disasm.instruction, 4, false), " ");
 
   if (disasm.instruction != X86_INS_INVALID and disasm.length != attempt.length) {
@@ -269,6 +271,7 @@ void start()
       print_instruction(current, attempt);
     }
 
+    // Find the next instruction candidate.
   again:
     current.raw[inc_pos]++;
     if (current.raw[inc_pos] == 0) {
@@ -280,6 +283,9 @@ void start()
 
       goto again;
     }
+
+    if (has_duplicated_prefixes(current))
+      goto again;
 
     last_attempt = attempt;
   }
