@@ -193,7 +193,11 @@ static void print_instruction(instruction_bytes const &instr,
                               execution_attempt const &attempt)
 {
   // Prefix instruction, so it's easy to grep output.
-  format("E ", hex(attempt.exception, 2, false), " I");
+  format("E ", hex(attempt.exception, 2, false), " O ");
+
+  auto disasm = disassemble(instr);
+  format(hex(disasm.instruction, 4, false),
+         disasm.length == attempt.length ? " OK I" : " ?? I");
 
   for (size_t i = 0; i < attempt.length; i++) {
     format(" ", hex(instr.raw[i], 2, false));
