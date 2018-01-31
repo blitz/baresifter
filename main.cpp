@@ -196,14 +196,43 @@ static void print_instruction(instruction_bytes const &instr,
   format("E ", hex(attempt.exception, 2, false), " O ");
 
   auto disasm = disassemble(instr);
-  format(hex(disasm.instruction, 4, false),
-         disasm.length == attempt.length ? " OK I" : " ?? I");
+  format(hex(disasm.instruction, 4, false), " ");
 
+  if (disasm.instruction != X86_INS_INVALID and disasm.length != attempt.length) {
+    // The CPU and Capstone successfully decoded an instruction, but they
+    // disagree about the length. This is likely a Capstone bug.
+    format("BUG ");
+  } else if (attempt.exception != 6 and disasm.instruction == X86_INS_INVALID) {
+    // The CPU successfully executed an instruction (i.e. #UD exception), but
+    // capstone is clueless what that is.
+    format("UNKN");
+  } else {
+    format("OK  ");
+  }
+
+  format(" |");
   for (size_t i = 0; i < attempt.length; i++) {
     format(" ", hex(instr.raw[i], 2, false));
   }
 
   format("\n");
+}
+
+static bool is_interesting_change(execution_attempt const &last,
+                                  execution_attempt const &now)
+{
+  if (last == now)
+    return false;
+
+  // This is a special case for FXSAVE, which has an alignment restriction on
+  // its memory operand. It will flip between #GP and #PF depending on the
+  // memory operand. Mark this case as non-interesting.
+  if (last.length == now.length and
+      ((last.exception == 0xE and now.exception == 0xD) or
+       (last.exception == 0xD and now.exception == 0xE)))
+    return false;
+
+  return true;
 }
 
 void start()
@@ -236,16 +265,12 @@ void start()
     memset(current.raw + attempt.length, 0, sizeof(current.raw) - attempt.length);
 
     // Something interesting has happened, start searching from the end again.
-    //
-    // TODO Consider switching from #PF to #GP not interesting, because
-    // instructions like fxsave switch between the two depending on whether
-    // their memory operand is aligned.
-    if (last_attempt != attempt) {
+    if (is_interesting_change(last_attempt, attempt)) {
       inc_pos = attempt.length - 1;
-
       print_instruction(current, attempt);
     }
 
+  again:
     current.raw[inc_pos]++;
     if (current.raw[inc_pos] == 0) {
       // We've wrapped at our current position, so go left one byte. If we hit
@@ -254,7 +279,7 @@ void start()
         break;
       }
 
-      current.raw[inc_pos]++;
+      goto again;
     }
 
     last_attempt = attempt;
