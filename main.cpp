@@ -291,4 +291,7 @@ void start()
   }
 
   format(">>> Done!\n");
+
+  // Reset
+  outbi<0x64>(0xFE);
 }
