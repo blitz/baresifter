@@ -24,6 +24,9 @@ static int opcode_to_prefix_group(uint8_t byte)
   case 0x67:                    // address size override
     group = 3;
     break;
+  case 0x40 ... 0x4F:           // REX prefixes
+    group = 4;
+    break;
   }
 
   return group;
@@ -32,7 +35,7 @@ static int opcode_to_prefix_group(uint8_t byte)
 bool has_duplicated_prefixes(instruction_bytes const &instr)
 {
   // Count prefix occurrence per group.
-  int prefix_count[4] {};
+  int prefix_count[5] {};
 
   for (uint8_t b : instr.raw) {
     int group = opcode_to_prefix_group(b);
