@@ -138,23 +138,31 @@ static exception_frame execute_user(void const *rip)
 static execution_attempt find_instruction_length(instruction_bytes const &instr)
 {
   char * const user_page = get_user_page();
+  exception_frame ef;
+  size_t i;
 
-  for (size_t i = 1; i <= array_size(instr.raw); i++) {
+  for (i = 1; i <= array_size(instr.raw); i++) {
     char * const instr_start = user_page + page_size - i;
     memcpy(instr_start, instr.raw, i);
 
-    auto ef = execute_user(instr_start);
+    ef = execute_user(instr_start);
 
+    // The instruction hasn't been completely fetched, if we get an instuction
+    // fetch page fault.
+    //
+    // The check for RIP is necessary, because otherwise we cannot correctly
+    // guess the length of XBEGIN with an abort address following the XBEGIN
+    // instruction.
     bool incomplete_instruction_fetch = (ef.vector == 14 and
                                          (ef.error_code & 0b10101 /* user space instruction fetch */) == 0b10100 and
-                                         get_cr2() == (uintptr_t)user_page + page_size);
+                                         get_cr2() == (uintptr_t)user_page + page_size and
+                                         ef.rip == (uintptr_t)instr_start);
 
     if (not incomplete_instruction_fetch)
-      return { (uint8_t)i, (uint8_t)ef.vector };
+      break;
   }
 
-  format("Could not find instruction length?\n");
-  wait_forever();
+  return { (uint8_t)i, (uint8_t)ef.vector };
 }
 
 static void self_test_instruction_length()
@@ -170,6 +178,7 @@ static void self_test_instruction_length()
     { 2, { 0xEB, 00 } },        // jmp 0x2
     { 5, { 0xE9, 0x00, 0x00, 0x00, 0x00 } }, // jmp 0x5
     { 6, { 0x66, 0xE9, 0x00, 0x00, 0x00, 0x00 } }, // jmp 0x6
+    { 6, { 0xC7, 0xF8, 0x00, 0x00, 0x00, 0x00 } }, // xbegin 0x6
     // lock add qword cs:[eax+4*eax+07e06df23h], 0efcdab89h
     { 15, { 0x2e, 0x67, 0xf0, 0x48,
             0x81, 0x84, 0x80, 0x23,
@@ -205,9 +214,12 @@ static void print_instruction(instruction_bytes const &instr,
     // The CPU and Capstone successfully decoded an instruction, but they
     // disagree about the length. This is likely a Capstone bug.
     format("BUG ");
-  } else if (attempt.exception != 6 and disasm.instruction == X86_INS_INVALID) {
-    // The CPU successfully executed an instruction (i.e. #UD exception), but
+  } else if (attempt.exception != 6 and attempt.length <= array_size(instr.raw) and
+             disasm.instruction == X86_INS_INVALID) {
+    // The CPU successfully executed an instruction (no #UD exception), but
     // capstone is clueless what that is.
+    //
+    // Ignore cases where we ran over the instruction length limit.
     format("UNKN");
   } else {
     format("OK  ");
@@ -284,6 +296,8 @@ void start()
       goto again;
     }
 
+    // Duplicated prefixes make the search space explode without generating
+    // insight.
     if (has_duplicated_prefixes(current))
       goto again;
 
