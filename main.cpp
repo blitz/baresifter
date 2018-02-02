@@ -277,7 +277,8 @@ void start()
     auto attempt = find_instruction_length(current);
 
     // Clear unused bytes.
-    memset(current.raw + attempt.length, 0, sizeof(current.raw) - attempt.length);
+    if (attempt.length < sizeof(current.raw))
+      memset(current.raw + attempt.length, 0, sizeof(current.raw) - attempt.length);
 
     // Something interesting has happened, start searching from the end again.
     if (is_interesting_change(last_attempt, attempt)) {
