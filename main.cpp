@@ -225,8 +225,10 @@ static void print_instruction(instruction_bytes const &instr,
     format("OK  ");
   }
 
+  format(attempt.length >= array_size(instr.raw) ? "!" : " ");
+
   format(" |");
-  for (size_t i = 0; i < attempt.length; i++) {
+  for (size_t i = 0; i < attempt.length and i < array_size(instr.raw); i++) {
     format(" ", hex(instr.raw[i], 2, false));
   }
 
