@@ -1,10 +1,10 @@
 #include "disassemble.hpp"
 #include "util.hpp"
 
-#include <capstone.h>
-#include <string.h>
+#include <cstring>
+#include <capstone/capstone.h>
 
-static char heap[16 << 10];
+static char heap[32 << 10];
 static size_t heap_pos = 0;
 
 // We have a primitive bump-pointer allocation. This is fine, because Capstone

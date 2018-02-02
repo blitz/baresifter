@@ -1,6 +1,6 @@
 #pragma once
 
-#include <x86.h>
+#include <capstone/x86.h>
 
 void setup_disassembler();
 void disassemble_self_test();
