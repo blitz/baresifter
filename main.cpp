@@ -302,8 +302,8 @@ void start()
     }
 
     // Duplicated prefixes make the search space explode without generating
-    // insight.
-    if (has_duplicated_prefixes(current))
+    // insight. Also enforce order on prefixes to further reduce search space.
+    if (has_duplicated_prefixes(current) or not has_ordered_prefixes(current))
       goto again;
 
     last_attempt = attempt;
