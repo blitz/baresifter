@@ -22,6 +22,7 @@ irq_entry_%1:
 
   ; Save the general-purpose registers and branch to the interrupt entry in C++.
 save_context:
+  cld
   push rax
   push rcx
   push rdx
