@@ -11,13 +11,14 @@ static void print_char(char c)
   outbi<qemu_debug_port>(c);
 }
 
-void print(const char *str)
+__attribute__((noinline)) void print(const char *str)
 {
   for (; *str; str++)
     print_char(*str);
 }
 
-void print(formatted_int const &v) {
+__attribute__((noinline)) void print(formatted_int const &v)
+{
   static const char hexdigit[] = "0123456789ABCDEF";
   assert(v.base <= sizeof(hexdigit), "Invalid base");
 

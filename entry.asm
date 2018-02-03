@@ -23,6 +23,7 @@ irq_entry_%1:
   ; Save the general-purpose registers and branch to the interrupt entry in C++.
 save_context:
   cld
+  clts                          ; enable FPU
   push rax
   push rcx
   push rdx
@@ -43,6 +44,9 @@ save_context:
   lea rdi, [rsp]                ; exception_frame
   call irq_entry
 irq_exit:
+  mov rax, cr0
+  or rax, (1 << 3)            ; disable FPU
+  mov cr0, rax
   pop r15
   pop r14
   pop r13

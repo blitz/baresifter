@@ -11,9 +11,16 @@
 %define PTE_PS (1 << 7)
 
 %define CR4_PAE (1 << 5)
+%define CR4_OSFXSR (1 << 9)
+%define CR4_OSXSAVE (1 << 18)
 %define CR4_SMEP (1 << 20)      ; Available since Ivy Bridge
 %define CR0_PE (1 << 0)
+%define CR0_MP (1 << 1)
 %define CR0_PG (1 << 31)
+
+%define XCR0_X87 (1 << 0)
+%define XCR0_SSE (1 << 1)
+%define XCR0_AVX (1 << 2)
 
 bits 32
 
@@ -73,8 +80,14 @@ _start:
   mov cr3, eax
 
   ; Long mode initialization. See Intel SDM Vol. 3 Chapter 9.8.5.
-  mov eax, CR4_PAE
+  ; Also enable supervisor-mode execution prevention and all non-integer instruction sets (SSE/AVX/...)
+  mov eax, CR4_PAE | CR4_SMEP | CR4_OSFXSR | CR4_OSXSAVE
   mov cr4, eax
+
+  mov eax, XCR0_X87 | XCR0_SSE | XCR0_AVX
+  xor edx, edx
+  xor ecx, ecx
+  xsetbv
 
   xor edx, edx
   mov eax, IA32_EFER_LME | IA32_EFER_NXE
@@ -82,7 +95,7 @@ _start:
   wrmsr
 
   ; Enable paging
-  mov eax, CR0_PE | CR0_PG
+  mov eax, CR0_PE | CR0_MP | CR0_PG
   mov cr0, eax
 
   lgdt [_boot_gdt]
