@@ -1,0 +1,5 @@
+-Iinclude
+-Icapstone/include
+-std=c++17
+-nostdinc++
+-nostdinc
