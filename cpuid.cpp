@@ -26,3 +26,8 @@ cpu_signature get_cpu_signature()
 
   return sig;
 }
+
+bool running_virtualized()
+{
+  return get_cpuid(1).ecx & (1U << 31);
+}

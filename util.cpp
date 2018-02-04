@@ -1,20 +1,15 @@
+#include "output_device.hpp"
 #include "util.hpp"
 #include "x86.hpp"
 
 extern "C" void (*_init_array_start[])();
 extern "C" void (*_init_array_end[])();
 
-static constexpr uint16_t qemu_debug_port = 0xe9;
+static output_device * const output_device = output_device::make();
 
-static void print_char(char c)
+void print(const char *str)
 {
-  outbi<qemu_debug_port>(c);
-}
-
-__attribute__((noinline)) void print(const char *str)
-{
-  for (; *str; str++)
-    print_char(*str);
+  output_device->puts(str);
 }
 
 __attribute__((noinline)) void print(formatted_int const &v)
@@ -40,7 +35,7 @@ __attribute__((noinline)) void print(formatted_int const &v)
     print("0x");
 
   do {
-    print_char(*(--p));
+    output_device->putc(*(--p));
   } while (p != output);
 }
 

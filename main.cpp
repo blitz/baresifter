@@ -258,7 +258,7 @@ void start()
 {
   print_logo();
 
-  auto sig = get_cpu_signature();
+  const auto sig = get_cpu_signature();
   format(">>> CPU is ", sig.vendor, " ", hex(sig.signature, 8, false), ".\n");
 
   setup_idt();

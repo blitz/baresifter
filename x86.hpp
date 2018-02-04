@@ -153,6 +153,14 @@ inline void outb(uint16_t port, uint8_t data)
   asm volatile ("outb %%al, (%%dx)" :: "d" (port), "a" (data));
 }
 
+// Generic 8-bit IN operation
+inline uint8_t inb(uint16_t port)
+{
+  uint8_t v;
+  asm volatile ("inb (%%dx), %%al" : "=a" (v) : "d" (port));
+  return v;
+}
+
 inline uint64_t get_cr0()
 {
   uint64_t v;
@@ -177,4 +185,9 @@ inline uint64_t rdtsc()
   uint32_t hi, lo;
   asm volatile ("rdtsc" : "=a" (lo), "=d" (hi));
   return (uint64_t)hi << 32 | lo;
+}
+
+inline void pause()
+{
+  asm volatile ("pause");
 }
