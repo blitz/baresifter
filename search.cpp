@@ -1,6 +1,6 @@
 #include <cstddef>
 
-#include "prefix.hpp"
+#include "search.hpp"
 #include "util.hpp"
 
 struct prefix_lut {

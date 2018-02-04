@@ -8,7 +8,7 @@
 #include "exception_frame.hpp"
 #include "logo.hpp"
 #include "paging.hpp"
-#include "prefix.hpp"
+#include "search.hpp"
 #include "selectors.hpp"
 #include "util.hpp"
 #include "x86.hpp"
