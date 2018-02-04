@@ -285,7 +285,10 @@ void start()
     // Something interesting has happened, start searching from the end again.
     if (is_interesting_change(last_attempt, attempt)) {
       inc_pos = attempt.length - 1;
-      print_instruction(current, attempt);
+
+      // Don't print instructions that cross the maximum instruction length.
+      if (attempt.length <= sizeof(current.raw))
+        print_instruction(current, attempt);
     }
 
     // Find the next instruction candidate.
