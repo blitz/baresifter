@@ -4,7 +4,10 @@
 
 class search_engine {
   instruction_bytes current_;
-  size_t increment_at = 0;
+  size_t increment_at_ = 0;
+  size_t current_prefixes_ = 0;
+
+  const size_t max_prefixes_;
 
 public:
 
@@ -24,7 +27,7 @@ public:
     return current_;
   }
 
-  search_engine(instruction_bytes const &start = {})
-    : current_(start)
+  search_engine(size_t max_prefixes = 0, instruction_bytes const &start = {})
+    : current_(start), max_prefixes_(max_prefixes)
   {}
 };

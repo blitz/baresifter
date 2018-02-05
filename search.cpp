@@ -58,7 +58,7 @@ struct prefix_state {
   uint8_t count[5] {};          // Count of prefixes in each group.
   uint8_t position[5] {};       // Position of each prefix (tracked per group)
 
-  __attribute__((noinline,used)) size_t total_prefix_bytes() const
+  size_t total_prefix_bytes() const
   {
     size_t sum = 0;
 
@@ -120,18 +120,23 @@ void search_engine::clear_after(size_t pos)
 
 void search_engine::start_over(size_t length)
 {
-  increment_at = length - 1;
+  increment_at_ = length - 1;
 }
 
 bool search_engine::find_next_candidate()
 {
-  current_.raw[increment_at]++;
+  current_.raw[increment_at_]++;
 
-  if (current_.raw[increment_at] == 0) {
+  if (current_.raw[increment_at_] == 0) {
     // We've wrapped at our current position, so go left one byte. If we hit
     // the beginning, we are done.
-    if (increment_at-- == 0) {
-      return false;
+    if (unlikely(increment_at_-- == 0)) {
+      if (++current_prefixes_ > max_prefixes_)
+        return false;
+
+      // Start from scratch with more prefixes.
+      increment_at_ = 0;
+      current_ = {};
     }
 
     return find_next_candidate();
@@ -141,7 +146,9 @@ bool search_engine::find_next_candidate()
 
   // Duplicated prefixes make the search space explode without generating
   // insight. Also enforce order on prefixes to further reduce search space.
-  if (state.has_duplicated_prefixes() or not state.has_ordered_prefixes())
+  if (state.total_prefix_bytes() != current_prefixes_ or
+      state.has_duplicated_prefixes() or
+      not state.has_ordered_prefixes())
     return find_next_candidate();
 
   return true;
