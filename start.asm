@@ -16,6 +16,7 @@
 %define CR4_SMEP (1 << 20)      ; Available since Ivy Bridge
 %define CR0_PE (1 << 0)
 %define CR0_MP (1 << 1)
+%define CR0_WP (1 << 16)
 %define CR0_PG (1 << 31)
 
 %define XCR0_X87 (1 << 0)
@@ -65,7 +66,7 @@ _start:
 
   ; Fill out PDPT
   mov eax, boot_pd
-  or eax, PTE_P | PTE_W | PTE_U
+  or eax, PTE_P | PTE_W
   mov dword [boot_pdpt], eax
 
   ; Fill out PDE
@@ -95,7 +96,7 @@ _start:
   wrmsr
 
   ; Enable paging
-  mov eax, CR0_PE | CR0_MP | CR0_PG
+  mov eax, CR0_PE | CR0_MP | CR0_WP | CR0_PG
   mov cr0, eax
 
   lgdt [_boot_gdt]

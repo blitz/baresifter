@@ -105,12 +105,12 @@ void irq_entry(exception_frame &ef)
 
 // Execute user code at the specified address. Returns after an exception with
 // the details of the exception.
-static exception_frame execute_user(void const *rip)
+static exception_frame execute_user(uintptr_t rip)
 {
   exception_frame user {};
 
   user.cs = ring3_code_selector;
-  user.rip = (uintptr_t)rip;
+  user.rip = rip;
   user.ss = ring3_data_selector;
   user.rflags = (1 /* TF */ << 8) | 2;
 
@@ -137,15 +137,16 @@ static exception_frame execute_user(void const *rip)
 
 static execution_attempt find_instruction_length(instruction_bytes const &instr)
 {
-  char * const user_page = get_user_page();
   exception_frame ef;
   size_t i;
 
   for (i = 1; i <= array_size(instr.raw); i++) {
-    char * const instr_start = user_page + page_size - i;
+    size_t const page_offset =  page_size - i;
+    char * const instr_start = get_user_page_backing() + page_offset;
+    uintptr_t const guest_rip = get_user_page() + page_offset;
     memcpy(instr_start, instr.raw, i);
 
-    ef = execute_user(instr_start);
+    ef = execute_user(guest_rip);
 
     // The instruction hasn't been completely fetched, if we get an instuction
     // fetch page fault.
@@ -155,8 +156,8 @@ static execution_attempt find_instruction_length(instruction_bytes const &instr)
     // instruction.
     bool incomplete_instruction_fetch = (ef.vector == 14 and
                                          (ef.error_code & 0b10101 /* user space instruction fetch */) == 0b10100 and
-                                         get_cr2() == (uintptr_t)user_page + page_size and
-                                         ef.rip == (uintptr_t)instr_start);
+                                         get_cr2() == get_user_page() + page_size and
+                                         ef.rip == guest_rip);
 
     if (not incomplete_instruction_fetch)
       break;

@@ -41,7 +41,6 @@ SECTIONS
         *(.bss  .bss.*);
       } : rw
 
-      . = ALIGN(0x200000);
       _image_end = .;
 
       /DISCARD/ :
