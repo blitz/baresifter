@@ -180,6 +180,18 @@ inline uint64_t get_cr2()
   return v;
 }
 
+inline void set_xcr0(uint64_t v)
+{
+  asm volatile ("xsetbv" :: "d" ((uint32_t)(v >> 32)), "a" ((uint32_t)v), "c" (0));
+}
+
+inline uint64_t get_xcr0()
+{
+  uint32_t lo, hi;
+  asm volatile ("xgetbv" : "=d" (hi), "=a" (lo) : "c" (0));
+  return (uint64_t)hi << 32 | lo;
+}
+
 inline uint64_t rdtsc()
 {
   uint32_t hi, lo;

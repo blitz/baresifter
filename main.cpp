@@ -2,6 +2,7 @@
 #include <cstring>
 #include <initializer_list>
 
+#include "avx.hpp"
 #include "cpuid.hpp"
 #include "disassemble.hpp"
 #include "entry.hpp"
@@ -264,6 +265,7 @@ void start()
 
   setup_idt();
   setup_paging();
+  try_setup_avx();
   setup_disassembler();
 
   format(">>> Executing self test.\n");
