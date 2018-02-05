@@ -271,46 +271,24 @@ void start()
 
   format(">>> Probing instruction space.\n");
 
-  instruction_bytes current;
+  search_engine search;
   execution_attempt last_attempt;
-  size_t inc_pos = 0;
 
-  while (true) {
-    auto attempt = find_instruction_length(current);
+  do {
+    auto const &candidate = search.get_candidate();
+    auto attempt = find_instruction_length(candidate);
 
-    // Clear unused bytes.
-    if (attempt.length < sizeof(current.raw))
-      memset(current.raw + attempt.length, 0, sizeof(current.raw) - attempt.length);
+    search.clear_after(attempt.length);
 
-    // Something interesting has happened, start searching from the end again.
     if (is_interesting_change(last_attempt, attempt)) {
-      inc_pos = attempt.length - 1;
+      search.start_over(attempt.length);
 
-      // Don't print instructions that cross the maximum instruction length.
-      if (attempt.length <= sizeof(current.raw))
-        print_instruction(current, attempt);
+      if (attempt.length <= sizeof(candidate.raw))
+        print_instruction(candidate, attempt);
     }
-
-    // Find the next instruction candidate.
-  again:
-    current.raw[inc_pos]++;
-    if (current.raw[inc_pos] == 0) {
-      // We've wrapped at our current position, so go left one byte. If we hit
-      // the beginning, we are done.
-      if (inc_pos-- == 0) {
-        break;
-      }
-
-      goto again;
-    }
-
-    // Duplicated prefixes make the search space explode without generating
-    // insight. Also enforce order on prefixes to further reduce search space.
-    if (has_duplicated_prefixes(current) or not has_ordered_prefixes(current))
-      goto again;
 
     last_attempt = attempt;
-  }
+  } while (search.find_next_candidate());
 
   format(">>> Done!\n");
 

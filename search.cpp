@@ -1,4 +1,5 @@
 #include <cstddef>
+#include <cstring>
 
 #include "search.hpp"
 #include "util.hpp"
@@ -52,7 +53,7 @@ static constexpr prefix_lut create_prefix_group_lut()
 
 static prefix_lut prefix_group_lut {create_prefix_group_lut()};
 
-bool has_duplicated_prefixes(instruction_bytes const &instr)
+static bool has_duplicated_prefixes(instruction_bytes const &instr)
 {
   // Count prefix occurrence per group.
   int prefix_count[5] {};
@@ -70,7 +71,7 @@ bool has_duplicated_prefixes(instruction_bytes const &instr)
 }
 
 // We assume no duplicated prefixes here.
-bool has_ordered_prefixes(instruction_bytes const &instr)
+static bool has_ordered_prefixes(instruction_bytes const &instr)
 {
   // Count prefix occurrence per group.
   uint8_t prefix_pos[5] {};
@@ -97,5 +98,37 @@ bool has_ordered_prefixes(instruction_bytes const &instr)
         return false;
 
   return true;
+}
 
+void search_engine::clear_after(size_t pos)
+{
+  if (pos < sizeof(current_.raw))
+    memset(current_.raw + pos, 0, sizeof(current_.raw) - pos);
+}
+
+void search_engine::start_over(size_t length)
+{
+  increment_at = length - 1;
+}
+
+bool search_engine::find_next_candidate()
+{
+  current_.raw[increment_at]++;
+
+  if (current_.raw[increment_at] == 0) {
+    // We've wrapped at our current position, so go left one byte. If we hit
+    // the beginning, we are done.
+    if (increment_at-- == 0) {
+      return false;
+    }
+
+    return find_next_candidate();
+  }
+
+  // Duplicated prefixes make the search space explode without generating
+  // insight. Also enforce order on prefixes to further reduce search space.
+  if (has_duplicated_prefixes(current_) or not has_ordered_prefixes(current_))
+    return find_next_candidate();
+
+  return true;
 }
