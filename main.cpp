@@ -167,7 +167,7 @@ static execution_attempt find_instruction_length(instruction_bytes const &instr)
 
 static void self_test_instruction_length()
 {
-  struct {
+  static const struct {
     size_t length;
     instruction_bytes instr;
   } tests[] {

@@ -53,51 +53,63 @@ static constexpr prefix_lut create_prefix_group_lut()
 
 static prefix_lut prefix_group_lut {create_prefix_group_lut()};
 
-static bool has_duplicated_prefixes(instruction_bytes const &instr)
-{
-  // Count prefix occurrence per group.
-  int prefix_count[5] {};
+// Encapsulates which prefixes are there, where and how many there are.
+struct prefix_state {
+  uint8_t count[5] {};          // Count of prefixes in each group.
+  uint8_t position[5] {};       // Position of each prefix (tracked per group)
 
-  for (uint8_t b : instr.raw) {
-    int group = prefix_group_lut.data[b];
+  __attribute__((noinline,used)) size_t total_prefix_bytes() const
+  {
+    size_t sum = 0;
+
+    for (auto c : count) {
+      sum += c;
+    }
+
+    return sum;
+  }
+
+  bool has_duplicated_prefixes() const
+  {
+    for (auto c : count) {
+      if (c >= 2)
+        return true;
+    }
+
+    return false;
+  }
+
+  // We assume no duplicated prefixes here.
+  bool has_ordered_prefixes() const
+  {
+    // TODO There has to be a better way to express this. This also generates an
+    // amazing number of conditional jumps with clang. Maybe use non-short-circuit
+    // boolean operators.
+    for (size_t i = 0; i < array_size(position) - 1; i++)
+      for (size_t j = i + 1; j < array_size(position); j++)
+        // Use non-short-circuit operators to reduce the number of conditional
+        // jumps.
+        if (count[i] and count[j] and (position[i] > position[j]))
+          return false;
+
+    return true;
+  }
+};
+
+static prefix_state analyze_prefixes(instruction_bytes const &instr)
+{
+  prefix_state state;
+
+  for (size_t i = 0; i < sizeof(instr.raw); i++) {
+    int group = prefix_group_lut.data[instr.raw[i]];
     if (group < 0)
       break;
 
-    if (++prefix_count[group] > 1)
-      return true;
+    state.count[group]++;
+    state.position[group] = i;
   }
 
-  return false;
-}
-
-// We assume no duplicated prefixes here.
-static bool has_ordered_prefixes(instruction_bytes const &instr)
-{
-  // Count prefix occurrence per group.
-  uint8_t prefix_pos[5] {};
-  bool has_prefix[5] {};
-  size_t i = 0;
-
-  for (uint8_t b : instr.raw) {
-    int group = prefix_group_lut.data[b];
-    if (group < 0)
-      break;
-
-    prefix_pos[group] = i++;
-    has_prefix[group] = true;
-  }
-
-  // TODO There has to be a better way to express this. This also generates an
-  // amazing number of conditional jumps with clang. Maybe use non-short-circuit
-  // boolean operators.
-  for (size_t i = 0; i < array_size(prefix_pos) - 1; i++)
-    for (size_t j = i + 1; j < array_size(prefix_pos); j++)
-      // Use non-short-circuit operators to reduce the number of conditional
-      // jumps.
-      if (has_prefix[i] and has_prefix[j] and (prefix_pos[i] > prefix_pos[j]))
-        return false;
-
-  return true;
+  return state;
 }
 
 void search_engine::clear_after(size_t pos)
@@ -125,9 +137,11 @@ bool search_engine::find_next_candidate()
     return find_next_candidate();
   }
 
+  auto const state = analyze_prefixes(current_);
+
   // Duplicated prefixes make the search space explode without generating
   // insight. Also enforce order on prefixes to further reduce search space.
-  if (has_duplicated_prefixes(current_) or not has_ordered_prefixes(current_))
+  if (state.has_duplicated_prefixes() or not state.has_ordered_prefixes())
     return find_next_candidate();
 
   return true;
