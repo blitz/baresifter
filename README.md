@@ -12,11 +12,9 @@ instruction bytes to this user space page and attempts to execute it by exiting
 to user space. It follows the same algorithm as outlined in the original
 [Sandsifter paper](https://github.com/xoreaxeaxeax/sandsifter/blob/master/references/domas_breaking_the_x86_isa_wp.pdf) to find interesting instructions and guess instruction length.
 
-**This project is in a very early state.**
-
 ## Building and running
 
-The build is currently tested on Fedora 27. The build requirements are
+The build is currently tested on Fedora 29. The build requirements are
 
 - clang++ 5.0 or later,
 - scons, and
@@ -24,8 +22,14 @@ The build is currently tested on Fedora 27. The build requirements are
 
 To start the build execute `scons`.
 
-Baresifter can be run with `./run.sh` and will output its results to the
+Baresifter can be run in KVM with `./run.sh` and will output its results to the
 console.
+
+To run baresifter bare-metal, use either grub or
+[syslinux](https://www.syslinux.org/wiki/index.php?title=Mboot.c32) and boot
+`baresifter.elf32` as multiboot kernel. It will dump instruction traces on the
+serial port. The serial port is hardcoded, so you might need to change that:
+`git grep serial_output`.
 
 ## Interpreting results
 
