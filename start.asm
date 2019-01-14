@@ -81,11 +81,13 @@ _start:
   mov cr3, eax
 
   ; Long mode initialization. See Intel SDM Vol. 3 Chapter 9.8.5.
-  ; Also enable supervisor-mode execution prevention and all non-integer instruction sets (SSE/AVX/...)
+  ; Also enable supervisor-mode execution prevention and non-integer instruction
+  ; sets (SSE) that are required for generic x86-64 code.
   mov eax, CR4_PAE | CR4_SMEP | CR4_OSFXSR | CR4_OSXSAVE
   mov cr4, eax
 
-  mov eax, XCR0_X87 | XCR0_SSE | XCR0_AVX
+  ; See avx.cpp for AVX initialization.
+  mov eax, XCR0_X87 | XCR0_SSE
   xor edx, edx
   xor ecx, ecx
   xsetbv
