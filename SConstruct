@@ -17,7 +17,7 @@ bare_env = Environment(CXX=os.environ.get("CXX", "clang++"),
                        CCFLAGS="-Wall -O2 -g -pipe -march=x86-64 -ffreestanding -nostdinc -mno-red-zone -mno-avx -mno-avx2 -fno-asynchronous-unwind-tables",
                        CXXFLAGS="-std=c++14 -fno-threadsafe-statics -fno-rtti -fno-exceptions -nostdinc++",
                        ASFLAGS="-O5 -felf64",
-                       CPPPATH=["#include", "#capstone/include"],
+                       CPPPATH=["#common/include", "#include", "#capstone/include"],
                        CPPDEFINES=capstone_defines,
                        LINKFLAGS="-nostdlib -g -Xlinker -n -Xlinker -T -Xlinker")
 

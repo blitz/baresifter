@@ -120,7 +120,6 @@ static exception_frame execute_user(uintptr_t rip)
   // Prepare our stack to call irq_exit and exit to user space. We save a
   // continuation so we return here after an exception.
   //
-  // TODO Use sysexit instead of iret to exit to user space faster.
   // TODO If we get a ring0 exception, we have a somewhat clobbered stack pointer.
   asm ("lea 1f, %%eax\n"
        "mov %%eax, %1\n"
