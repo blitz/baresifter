@@ -265,7 +265,7 @@ void start()
   setup_idt();
   setup_paging();
   try_setup_avx();
-  setup_disassembler();
+  setup_disassembler(64);
 
   format(">>> Executing self test.\n");
   self_test_instruction_length();

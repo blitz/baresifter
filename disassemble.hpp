@@ -2,7 +2,7 @@
 
 #include <capstone/x86.h>
 
-void setup_disassembler();
+void setup_disassembler(int bits);
 void disassemble_self_test();
 
 // A raw set of bytes representing an instruction (potentially).

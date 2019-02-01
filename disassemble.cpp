@@ -62,9 +62,10 @@ static void free(void *)
 static csh handle;
 static cs_insn *insn;
 
-void setup_disassembler()
+void setup_disassembler(int bits)
 {
   cs_opt_mem opt_mem {};
+  cs_mode mode;
 
   opt_mem.malloc = malloc;
   opt_mem.calloc = calloc;
@@ -72,8 +73,17 @@ void setup_disassembler()
   opt_mem.free = free;
   opt_mem.vsnprintf = vsnprintf;
 
+  switch (bits) {
+  case 16: mode = CS_MODE_16; break;
+  case 32: mode = CS_MODE_32; break;
+  case 64: mode = CS_MODE_64; break;
+  default:
+    format("Invalid bits specification");
+    wait_forever();
+  }
+
   cs_check(cs_option(0, CS_OPT_MEM, (uintptr_t)&opt_mem));
-  cs_check(cs_open(CS_ARCH_X86, CS_MODE_64, &handle));
+  cs_check(cs_open(CS_ARCH_X86, mode, &handle));
 
   insn = cs_malloc(handle);
 
