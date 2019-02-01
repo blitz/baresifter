@@ -38,7 +38,7 @@ capstone_src = [
 common_src = Glob("common/*.cpp")
 musl_src = Glob("musl/*.c")
 
-version_inc = Command("version.inc", [], "git describe --always --dirty | sed -E 's/^(.*)$/\"\\1\"/' > $TARGET")
+version_inc = Command("common/version.inc", [], "git describe --always --dirty | sed -E 's/^(.*)$/\"\\1\"/' > $TARGET")
 AlwaysBuild(version_inc)
 
 baresifter = bare_env.Program(target="baresifter.elf64",

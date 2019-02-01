@@ -1,5 +1,5 @@
 /.scons*
-/version.inc
+/common/version.inc
 *~
 *.a
 *.elf32
