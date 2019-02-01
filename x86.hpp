@@ -5,6 +5,12 @@
 #include <cstddef>
 #include <cstdint>
 
+#ifdef __x86_64__
+using mword_t = uint64_t;
+#else
+using mword_t = uint32_t;
+#endif
+
 // Task State Segment
 struct tss {
   uint32_t reserved0;
@@ -26,17 +32,22 @@ struct gdt_desc {
   uint8_t  type_dpl = 0;
   uint8_t  limit_flags = 0;
   uint8_t  base_hi = 0;
+
+#ifdef __x86_64__
   uint32_t base_hi2 = 0;
   uint32_t reserved = 0;
+#endif
 
   gdt_desc() = default;
 
-  void set_base(uint64_t base)
+  void set_base(uintptr_t base)
   {
     base_lo = base & 0xFFFF;
     base_mid = (base >> 16) & 0xFF;
     base_hi = (base >> 24) & 0xFF;
+#ifdef __x86_64__
     base_hi2 = base >> 32;
+#endif
   }
 
   static gdt_desc tss_desc(tss const *base)
@@ -84,7 +95,11 @@ struct gdt_desc {
   }
 };
 
+#ifdef __x86_64__
 static_assert(sizeof(gdt_desc) == 16, "GDT structure broken");
+#else
+static_assert(sizeof(gdt_desc) == 8, "GDT structure broken");
+#endif
 
 // Interrupt descriptor table descriptor
 struct idt_desc {
@@ -92,12 +107,14 @@ struct idt_desc {
   uint16_t selector = 0;
   uint16_t flags = 0;
   uint16_t offset_hi = 0;
+#ifdef __x86_64__
   uint32_t offset_hi2 = 0;
   uint32_t reserved = 0;
+#endif
 
   idt_desc() = default;
 
-  static idt_desc interrupt_gate(uint16_t sel_, uint64_t offset_, uint8_t ist, uint8_t dpl)
+  static idt_desc interrupt_gate(uint16_t sel_, uintptr_t offset_, uint8_t ist, uint8_t dpl)
   {
     idt_desc i;
 
@@ -105,7 +122,9 @@ struct idt_desc {
     i.selector = sel_;
     i.flags = ist | (14 /* type */ << 8) | (dpl << 13) | (1 << 15 /* Present */);
     i.offset_hi = (offset_ >> 16) & 0xFFFF;
+#ifdef __x86_64__
     i.offset_hi2 = offset_ >> 32;
+#endif
 
     return i;
   }
@@ -161,35 +180,36 @@ inline uint8_t inb(uint16_t port)
   return v;
 }
 
-inline uint64_t get_cr0()
+inline mword_t get_cr0()
 {
-  uint64_t v;
+  mword_t v;
   asm volatile ("mov %%cr0, %0" : "=r" (v));
   return v;
 }
 
-inline void set_cr0(uint64_t v)
+inline void set_cr0(uintptr_t v)
 {
   asm volatile ("mov %0, %%cr0" :: "r" (v));
 }
 
-inline uint64_t get_cr2()
+inline mword_t get_cr2()
 {
-  uint64_t v;
+  mword_t v;
   asm volatile ("mov %%cr2, %0" : "=r" (v));
   return v;
 }
 
 inline void set_xcr0(uint64_t v)
 {
-  asm volatile ("xsetbv" :: "d" ((uint32_t)(v >> 32)), "a" ((uint32_t)v), "c" (0));
+  asm volatile ("xsetbv" ::
+                "d" ((uint32_t)(v >> 32)), "a" ((uint32_t)v), "c" (0));
 }
 
 inline uint64_t get_xcr0()
 {
   uint32_t lo, hi;
   asm volatile ("xgetbv" : "=d" (hi), "=a" (lo) : "c" (0));
-  return (uint64_t)hi << 32 | lo;
+  return (mword_t)hi << 32 | lo;
 }
 
 inline uint64_t rdtsc()
