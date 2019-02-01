@@ -1,0 +1,10 @@
+dist: xenial
+language: cpp
+script: scons
+compiler:
+  - clang
+addons:
+  apt:
+    packages:
+      - scons
+      - nasm

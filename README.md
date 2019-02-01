@@ -1,5 +1,7 @@
 # Baresifter
 
+[![Build Status](https://travis-ci.org/blitz/baresifter.svg?branch=master)](https://travis-ci.org/blitz/baresifter)
+
 Baresifter is a 64-bit x86 instruction set fuzzer modeled
 after [Sandsifter](https://github.com/xoreaxeaxeax/sandsifter). In contrast to
 Sandsifter, Baresifter is intended to run bare-metal without any operating

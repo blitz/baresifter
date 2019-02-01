@@ -12,13 +12,14 @@ bare_env = Environment(CXX=os.environ.get("CXX", "clang++"),
                        CC=os.environ.get("CC", "clang"),
                        LINK=os.environ.get("CXX", "clang++"),
                        AR=os.environ.get("AR", "llvm-ar"),
+                       ENV = os.environ,
                        AS="nasm",
-                       CCFLAGS="-Wall -O2 -flto -g -pipe -march=x86-64 -ffreestanding -nostdinc -mno-red-zone -mno-avx -mno-avx2 -fno-asynchronous-unwind-tables",
-                       CXXFLAGS="-std=c++17 -fno-threadsafe-statics -fno-rtti -fno-exceptions -nostdinc++",
-                       ASFLAGS="-g -F dwarf -O5 -felf64",
+                       CCFLAGS="-Wall -O2 -g -pipe -march=x86-64 -ffreestanding -nostdinc -mno-red-zone -mno-avx -mno-avx2 -fno-asynchronous-unwind-tables",
+                       CXXFLAGS="-std=c++14 -fno-threadsafe-statics -fno-rtti -fno-exceptions -nostdinc++",
+                       ASFLAGS="-O5 -felf64",
                        CPPPATH=["#include", "#capstone/include"],
                        CPPDEFINES=capstone_defines,
-                       LINKFLAGS="-flto -nostdlib -g -Xlinker -n -Xlinker -T -Xlinker")
+                       LINKFLAGS="-nostdlib -g -Xlinker -n -Xlinker -T -Xlinker")
 
 capstone_src = [
     "capstone/cs.c",
