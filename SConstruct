@@ -35,6 +35,7 @@ capstone_src = [
     "capstone/arch/X86/X86Module.c",
 ]
 
+common_src = Glob("common/*.cpp")
 musl_src = Glob("musl/*.c")
 
 version_inc = Command("version.inc", [], "git describe --always --dirty | sed -E 's/^(.*)$/\"\\1\"/' > $TARGET")
@@ -42,6 +43,6 @@ AlwaysBuild(version_inc)
 
 baresifter = bare_env.Program(target="baresifter.elf64",
                               source = ["standalone.lds"] + Glob("*.asm") + Glob("*.cpp")
-                                       + capstone_src + musl_src)
+                                       + capstone_src + musl_src + common_src)
 
 Command("baresifter.elf32", baresifter, "objcopy -O elf32-i386 $SOURCE $TARGET")
