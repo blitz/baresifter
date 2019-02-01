@@ -13,6 +13,7 @@ using mword_t = uint32_t;
 
 // Task State Segment
 struct tss {
+#ifdef __x86_64__
   uint32_t reserved0;
   uint64_t rsp[3];
   uint32_t reserved1;
@@ -22,6 +23,39 @@ struct tss {
   uint32_t reserved4;
   uint16_t reserved5;
   uint16_t iopb_offset;
+#else
+  uint16_t prev_task;
+  uint16_t reserved0;
+  uint32_t rsp0;
+  uint32_t ss0;
+
+  uint32_t rsp1;
+  uint32_t ss1;
+
+  uint32_t rsp2;
+  uint32_t ss2;
+
+  uint32_t rsp3;
+  uint32_t ss3;
+
+  uint32_t cr3;
+
+  uint32_t eip;
+  uint32_t eflags;
+
+  uint32_t gpr[8];
+
+  uint32_t es;
+  uint32_t cs;
+  uint32_t ss;
+  uint32_t ds;
+  uint32_t fs;
+  uint32_t gs;
+
+  uint32_t ldt;
+
+  uint32_t flags_iobm;
+#endif
 } __attribute__((packed));
 
 // A descriptor for the Global Descriptor Table
