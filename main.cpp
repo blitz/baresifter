@@ -3,6 +3,7 @@
 #include <initializer_list>
 
 #include "avx.hpp"
+#include "arch.hpp"
 #include "cpuid.hpp"
 #include "disassemble.hpp"
 #include "execution_attempt.hpp"

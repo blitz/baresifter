@@ -17,7 +17,7 @@ bare_env = Environment(CXX=os.environ.get("CXX", "clang++"),
                        CCFLAGS="-Wall -O2 -g -pipe -march=x86-64 -ffreestanding -nostdinc -mno-red-zone -mno-avx -mno-avx2 -fno-asynchronous-unwind-tables",
                        CXXFLAGS="-std=c++14 -fno-threadsafe-statics -fno-rtti -fno-exceptions -nostdinc++",
                        ASFLAGS="-O5 -felf64",
-                       CPPPATH=["#common/include", "#include", "#capstone/include"],
+                       CPPPATH=["#x86_64/include", "#common/include", "#include", "#capstone/include"],
                        CPPDEFINES=capstone_defines,
                        LINKFLAGS="-nostdlib -g -Xlinker -n -Xlinker -T -Xlinker")
 
@@ -36,13 +36,14 @@ capstone_src = [
 ]
 
 common_src = Glob("common/*.cpp")
+x86_64_src = Glob("x86_64/*.cpp") + Glob("x86_64/*.asm")
 musl_src = Glob("musl/*.c")
 
 version_inc = Command("common/version.inc", [], "git describe --always --dirty | sed -E 's/^(.*)$/\"\\1\"/' > $TARGET")
 AlwaysBuild(version_inc)
 
 baresifter = bare_env.Program(target="baresifter.elf64",
-                              source = ["standalone.lds"] + Glob("*.asm") + Glob("*.cpp")
-                                       + capstone_src + musl_src + common_src)
+                              source = ["standalone.lds"] + Glob("*.cpp")
+                                       + capstone_src + musl_src + common_src + x86_64_src)
 
 Command("baresifter.elf32", baresifter, "objcopy -O elf32-i386 $SOURCE $TARGET")
