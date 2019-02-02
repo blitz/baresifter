@@ -5,6 +5,7 @@
 #include "avx.hpp"
 #include "cpuid.hpp"
 #include "disassemble.hpp"
+#include "execution_attempt.hpp"
 #include "entry.hpp"
 #include "exception_frame.hpp"
 #include "logo.hpp"
@@ -13,21 +14,6 @@
 #include "selectors.hpp"
 #include "util.hpp"
 #include "x86.hpp"
-
-struct execution_attempt {
-  uint8_t length = 0;
-  uint8_t exception = 0;
-};
-
-bool operator==(execution_attempt const &a, execution_attempt const &b)
-{
-  return a.length == b.length and a.exception == b.exception;
-}
-
-bool operator!=(execution_attempt const &a, execution_attempt const &b)
-{
-  return not (a == b);
-}
 
 extern "C" void irq_entry(exception_frame &);
 extern "C" void start();
