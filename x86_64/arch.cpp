@@ -96,15 +96,16 @@ exception_frame execute_user(uintptr_t rip)
   // continuation so we return here after an exception.
   //
   // TODO If we get a ring0 exception, we have a somewhat clobbered stack pointer.
-  asm ("mov %%rbp, %3\n"
+  asm ("mov %%rbp, %[rbp_save]\n"
        "lea 1f, %%eax\n"
-       "mov %%eax, %1\n"
-       "mov %%rsp, %0\n"
-       "lea %2, %%rsp\n"
+       "mov %%eax, %[cont]\n"
+       "mov %%rsp, %[ring0_rsp]\n"
+       "lea %[user], %%rsp\n"
        "jmp irq_exit\n"
        "1:\n"
-       "mov %3, %%rbp\n"
-       : "=m" (tss.rsp[0]), "=m" (ring0_continuation), "+m" (user), "=m" (clobbered_rbp)
+       "mov %[rbp_save], %%rbp\n"
+       : [ring0_rsp] "=m" (tss.rsp[0]), [cont] "=m" (ring0_continuation),
+         [user] "+m" (user), [rbp_save] "=m" (clobbered_rbp)
        :
        // Everything except RBP is clobbered, because we come back via irq_entry
        // after basically executing random byte.
