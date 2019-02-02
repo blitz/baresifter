@@ -148,7 +148,7 @@ static execution_attempt find_instruction_length(instruction_bytes const &instr)
 
     ef = execute_user(guest_rip);
 
-    // The instruction hasn't been completely fetched, if we get an instuction
+    // The instruction hasn't been completely fetched, if we get an instruction
     // fetch page fault.
     //
     // The check for RIP is necessary, because otherwise we cannot correctly
