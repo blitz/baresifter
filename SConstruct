@@ -49,12 +49,17 @@ bare64_env = common_bare_env.Clone(ARCH_NAME="x86_64")
 bare64_env.Append(CCFLAGS=" -m64 -march=x86-64 -mno-red-zone",
                   ASFLAGS=" -felf64")
 
-source_files = [files
-                for directory in [".", "common", "musl", "$ARCH_NAME"]
-                for extension in ["c", "cpp", "asm"]
-                for files in bare64_env.Glob("{}/*.{}".format(directory, extension)) ]
-source_files += capstone_src
+bare32_env = common_bare_env.Clone(ARCH_NAME="x86_32")
+bare32_env.Append(CCFLAGS=" -m32 -march=i686",
+                  ASFLAGS=" -felf32")
 
-baresifter = bare64_env.Program(target="baresifter", source = ["standalone.lds"] + source_files)
+for env in [bare64_env]:
+    source_files = [files
+                    for directory in [".", "common", "musl", "$ARCH_NAME"]
+                    for extension in ["c", "cpp", "asm"]
+                    for files in env.Glob("{}/*.{}".format(directory, extension)) ]
+    source_files += capstone_src
 
-Command("baresifter.elf32", baresifter, "objcopy -O elf32-i386 $SOURCE $TARGET")
+    baresifter = env.Program(target="baresifter", source = ["$ARCH_NAME/standalone.lds"] + source_files)
+    if env["ARCH_NAME"] == "x86_64":
+        Command("baresifter.elf32", baresifter, "objcopy -O elf32-i386 $SOURCE $TARGET")
