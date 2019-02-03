@@ -38,13 +38,12 @@ uintptr_t get_user_page();
 // The user space page as a read-write supervisor-accessible mapping.
 char *get_user_page_backing();
 
-void setup_paging();
-
 // The entry point that is called by the assembly bootstrap code.
 extern "C" void start();
-
-void setup_idt();
 
 // Try to execute a single userspace instruction and return the exception that
 // resulted.
 exception_frame execute_user(uintptr_t rip);
+
+// Setup paging, descriptor tables and instruction set extensions.
+void setup_arch();

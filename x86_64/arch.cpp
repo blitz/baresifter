@@ -1,5 +1,7 @@
 #include "arch.hpp"
+#include "avx.hpp"
 #include "entry.hpp"
+#include "paging.hpp"
 #include "selectors.hpp"
 #include "x86.hpp"
 #include "util.hpp"
@@ -114,4 +116,11 @@ exception_frame execute_user(uintptr_t rip)
          "memory");
 
   return user;
+}
+
+void setup_arch()
+{
+  setup_idt();
+  setup_paging();
+  try_setup_avx();
 }
