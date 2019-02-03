@@ -2,6 +2,7 @@
 /common/version.inc
 *~
 *.a
+*.elf
 *.elf32
 *.elf64
 *.o
