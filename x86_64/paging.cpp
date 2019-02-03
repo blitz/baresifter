@@ -1,6 +1,4 @@
-#include <cstdint>
-
-#include "paging.hpp"
+#include "arch.hpp"
 #include "util.hpp"
 
 static const uint64_t PTE_P = 1 << 0;

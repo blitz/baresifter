@@ -7,7 +7,6 @@
 #include "disassemble.hpp"
 #include "execution_attempt.hpp"
 #include "logo.hpp"
-#include "paging.hpp"
 #include "search.hpp"
 #include "util.hpp"
 #include "x86.hpp"

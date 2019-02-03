@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 
 struct exception_frame {
@@ -29,7 +30,21 @@ struct exception_frame {
   uint64_t ss;
 };
 
+const size_t page_size = 4096;
+
+// The user space page as a read-only user-accessible mapping.
+uintptr_t get_user_page();
+
+// The user space page as a read-write supervisor-accessible mapping.
+char *get_user_page_backing();
+
+void setup_paging();
+
+// The entry point that is called by the assembly bootstrap code.
 extern "C" void start();
 
 void setup_idt();
+
+// Try to execute a single userspace instruction and return the exception that
+// resulted.
 exception_frame execute_user(uintptr_t rip);
