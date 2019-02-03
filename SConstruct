@@ -53,9 +53,13 @@ bare32_env = common_bare_env.Clone(ARCH_NAME="x86_32")
 bare32_env.Append(CCFLAGS=" -m32 -march=i686",
                   ASFLAGS=" -felf32")
 
-for env in [bare64_env]:
+for env in [bare64_env, bare32_env]:
+    source_directories = [".", "common", "musl", "$ARCH_NAME"]
+    if env["ARCH_NAME"] == "x86_32":
+        source_directories += ["compiler-rt"]
+
     source_files = [files
-                    for directory in [".", "common", "musl", "$ARCH_NAME"]
+                    for directory in source_directories
                     for extension in ["c", "cpp", "asm"]
                     for files in env.Glob("{}/*.{}".format(directory, extension)) ]
     source_files += capstone_src
