@@ -52,7 +52,7 @@ void setup_idt()
 static void print_exception(exception_frame const &ef)
 {
   format("!!! exception ", ef.vector, " (", hex(ef.error_code), ") at ",
-         hex(ef.cs), ":", hex(ef.rip), "\n");
+         hex(ef.cs), ":", hex(ef.ip), "\n");
   format("!!! CR2 ", hex(get_cr2()), "\n");
   format("!!! RDI ", hex(ef.rdi), "\n");
   format("!!! RSI ", hex(ef.rsi), "\n");
@@ -88,7 +88,7 @@ exception_frame execute_user(uintptr_t rip)
   exception_frame user {};
 
   user.cs = ring3_code_selector;
-  user.rip = rip;
+  user.ip = rip;
   user.ss = ring3_data_selector;
   user.rflags = (1 /* TF */ << 8) | 2;
 

@@ -18,10 +18,10 @@ static execution_attempt find_instruction_length(instruction_bytes const &instr)
   for (i = 1; i <= array_size(instr.raw); i++) {
     size_t const page_offset =  page_size - i;
     char * const instr_start = get_user_page_backing() + page_offset;
-    uintptr_t const guest_rip = get_user_page() + page_offset;
+    uintptr_t const guest_ip = get_user_page() + page_offset;
     memcpy(instr_start, instr.raw, i);
 
-    ef = execute_user(guest_rip);
+    ef = execute_user(guest_ip);
 
     // The instruction hasn't been completely fetched, if we get an instruction
     // fetch page fault.
@@ -32,7 +32,7 @@ static execution_attempt find_instruction_length(instruction_bytes const &instr)
     bool incomplete_instruction_fetch = (ef.vector == 14 and
                                          (ef.error_code & 0b10101 /* user space instruction fetch */) == 0b10100 and
                                          get_cr2() == get_user_page() + page_size and
-                                         ef.rip == guest_rip);
+                                         ef.ip == guest_ip);
 
     if (not incomplete_instruction_fetch)
       break;
