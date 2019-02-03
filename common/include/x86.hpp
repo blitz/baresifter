@@ -243,7 +243,7 @@ inline uint64_t get_xcr0()
 {
   uint32_t lo, hi;
   asm volatile ("xgetbv" : "=d" (hi), "=a" (lo) : "c" (0));
-  return (mword_t)hi << 32 | lo;
+  return (uint64_t)hi << 32 | lo;
 }
 
 inline uint64_t rdtsc()
