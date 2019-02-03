@@ -6,7 +6,6 @@
 #include "cpuid.hpp"
 #include "disassemble.hpp"
 #include "execution_attempt.hpp"
-#include "exception_frame.hpp"
 #include "logo.hpp"
 #include "paging.hpp"
 #include "search.hpp"
