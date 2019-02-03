@@ -1,18 +1,15 @@
 #include <cstdint>
 #include <cstring>
-#include <initializer_list>
 
 #include "avx.hpp"
 #include "arch.hpp"
 #include "cpuid.hpp"
 #include "disassemble.hpp"
 #include "execution_attempt.hpp"
-#include "entry.hpp"
 #include "exception_frame.hpp"
 #include "logo.hpp"
 #include "paging.hpp"
 #include "search.hpp"
-#include "selectors.hpp"
 #include "util.hpp"
 #include "x86.hpp"
 
