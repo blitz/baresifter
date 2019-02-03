@@ -12,5 +12,11 @@ static const char git_version[] =
 
 void print_logo()
 {
-  format(logo, "\nVersion ", git_version, "\n\n");
+  format(logo, "\n"
+#ifdef __x86_64__
+         "64"
+#else
+         "32"
+#endif
+         "-bit version ", git_version, "\n\n");
 }
