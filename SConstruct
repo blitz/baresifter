@@ -64,6 +64,4 @@ for env in [bare64_env, bare32_env]:
                     for files in env.Glob("{}/*.{}".format(directory, extension)) ]
     source_files += capstone_src
 
-    baresifter = env.Program(target="baresifter", source = ["$ARCH_NAME/standalone.lds"] + source_files)
-    if env["ARCH_NAME"] == "x86_64":
-        Command("baresifter.elf32", baresifter, "objcopy -O elf32-i386 $SOURCE $TARGET")
+    env.Program(target="baresifter", source = ["$ARCH_NAME/standalone.lds"] + source_files)
