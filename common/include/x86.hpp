@@ -11,6 +11,19 @@ using mword_t = uint64_t;
 using mword_t = uint32_t;
 #endif
 
+// Constants
+
+enum : mword_t {
+  PTE_P = 1 << 0,
+  PTE_W = 1 << 1,
+  PTE_U = 1 << 2,
+  PTE_PS = 1 << 7,
+};
+
+enum {
+  CR4_PSE = 1 << 4,
+};
+
 // Task State Segment
 struct tss {
 #ifdef __x86_64__
@@ -215,22 +228,14 @@ inline uint8_t inb(uint16_t port)
 }
 
 inline void set_cr0(mword_t v) { asm volatile ("mov %0, %%cr0" :: "r" (v)); }
+inline void set_cr2(mword_t v) { asm volatile ("mov %0, %%cr2" :: "r" (v)); }
 inline void set_cr3(mword_t v) { asm volatile ("mov %0, %%cr3" :: "r" (v) : "memory"); }
 inline void set_cr4(mword_t v) { asm volatile ("mov %0, %%cr4" :: "r" (v)); }
 
-inline mword_t get_cr0()
-{
-  mword_t v;
-  asm volatile ("mov %%cr0, %0" : "=r" (v));
-  return v;
-}
-
-inline mword_t get_cr2()
-{
-  mword_t v;
-  asm volatile ("mov %%cr2, %0" : "=r" (v));
-  return v;
-}
+inline mword_t get_cr0() { mword_t v; asm volatile ("mov %%cr0, %0" : "=r" (v)); return v; }
+inline mword_t get_cr2() { mword_t v; asm volatile ("mov %%cr2, %0" : "=r" (v)); return v; }
+inline mword_t get_cr3() { mword_t v; asm volatile ("mov %%cr3, %0" : "=r" (v)); return v; }
+inline mword_t get_cr4() { mword_t v; asm volatile ("mov %%cr4, %0" : "=r" (v)); return v; }
 
 inline void set_xcr0(uint64_t v)
 {

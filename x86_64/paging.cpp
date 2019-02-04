@@ -1,9 +1,7 @@
 #include "arch.hpp"
 #include "paging.hpp"
 #include "util.hpp"
-
-static const uint64_t PTE_P = 1 << 0;
-static const uint64_t PTE_U = 1 << 2;
+#include "x86.hpp"
 
 extern char _image_end[];
 

@@ -5,11 +5,6 @@
 extern "C" char _image_start[];
 extern "C" char _image_end[];
 
-static const uint32_t PTE_P = 1 << 0;
-static const uint32_t PTE_W = 1 << 1;
-static const uint32_t PTE_U = 1 << 2;
-static const uint32_t PTE_PS = 1 << 7;
-
 // Page directory. Kernel code is covered using 2MB entries here.
 alignas(page_size) static uint32_t pdt[page_size / sizeof(uint32_t)];
 
@@ -56,5 +51,6 @@ void setup_arch()
 
   // TODO Map user page
 
+  set_cr4(get_cr4() | CR4_PSE);
   set_cr3((uintptr_t)pdt);
 }
