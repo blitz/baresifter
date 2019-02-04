@@ -12,8 +12,8 @@ SECTIONS
 {
       ENTRY(_start)
 
-      /* 2 MB */
-      . = 0x200000;
+      /* 4 MB aligned to use super pages */
+      . = 0x400000;
       _image_start = .;
       . += SIZEOF_HEADERS;
 

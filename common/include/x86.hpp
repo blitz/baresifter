@@ -214,16 +214,15 @@ inline uint8_t inb(uint16_t port)
   return v;
 }
 
+inline void set_cr0(mword_t v) { asm volatile ("mov %0, %%cr0" :: "r" (v)); }
+inline void set_cr3(mword_t v) { asm volatile ("mov %0, %%cr3" :: "r" (v) : "memory"); }
+inline void set_cr4(mword_t v) { asm volatile ("mov %0, %%cr4" :: "r" (v)); }
+
 inline mword_t get_cr0()
 {
   mword_t v;
   asm volatile ("mov %%cr0, %0" : "=r" (v));
   return v;
-}
-
-inline void set_cr0(uintptr_t v)
-{
-  asm volatile ("mov %0, %%cr0" :: "r" (v));
 }
 
 inline mword_t get_cr2()

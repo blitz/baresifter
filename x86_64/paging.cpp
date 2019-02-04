@@ -1,4 +1,5 @@
 #include "arch.hpp"
+#include "paging.hpp"
 #include "util.hpp"
 
 static const uint64_t PTE_P = 1 << 0;
@@ -17,16 +18,14 @@ extern "C" uint64_t boot_pml4[512];
 extern "C" uint64_t boot_pdpt[512];
 extern "C" uint64_t boot_pd[512];
 
-#define page_align alignas(4096)
+alignas(page_size) uint64_t boot_pml4[512];
+alignas(page_size) uint64_t boot_pdpt[512]; // Covers 0 - 512GB
+alignas(page_size) uint64_t boot_pd[512];   // Covers 0 - 1GB
 
-page_align uint64_t boot_pml4[512];
-page_align uint64_t boot_pdpt[512]; // Covers 0 - 512GB
-page_align uint64_t boot_pd[512];   // Covers 0 - 1GB
+alignas(page_size) static uint64_t user_pd[512]; // Covers 4GB-5GB
+alignas(page_size) static uint64_t user_pt[512]; // Covers 4GB to 4GB+4K
 
-page_align static uint64_t user_pd[512]; // Covers 4GB-5GB
-page_align static uint64_t user_pt[512]; // Covers 4GB to 4GB+4K
-
-page_align static char user_page_backing[page_size];
+alignas(page_size) static char user_page_backing[page_size];
 
 char *get_user_page_backing()
 {
