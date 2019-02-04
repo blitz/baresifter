@@ -51,9 +51,11 @@ void setup_arch()
   }
 
   // Map user page
-  assert(get_user_page() >= iend, "User page cannot be mapped into kernel area");
-  pdt[bit_select(32, 22, get_user_page())] = reinterpret_cast<uintptr_t>(user_pt) | PTE_U | PTE_P;
-  user_pt[bit_select(22, 12, get_user_page())] = reinterpret_cast<uintptr_t>(get_user_page_backing()) | PTE_U | PTE_P;
+  uintptr_t up = get_user_page();
+
+  assert(up >= iend, "User page cannot be mapped into kernel area");
+  pdt[bit_select(32, 22, up)] = reinterpret_cast<uintptr_t>(user_pt) | PTE_U | PTE_P;
+  user_pt[bit_select(22, 12, up)] = reinterpret_cast<uintptr_t>(get_user_page_backing()) | PTE_U | PTE_P;
 
   set_cr4(get_cr4() | CR4_PSE);
   set_cr3((uintptr_t)pdt);
