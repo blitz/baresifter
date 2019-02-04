@@ -37,7 +37,8 @@ static bool is_aligned(uint64_t v, int order)
   return 0 == (v & ((uint64_t(1) << order) - 1));
 }
 
-void setup_arch()
+
+static void setup_paging()
 {
   uintptr_t istart = reinterpret_cast<uintptr_t>(_image_start);
   uintptr_t iend = reinterpret_cast<uintptr_t>(_image_end);
@@ -59,4 +60,22 @@ void setup_arch()
 
   set_cr4(get_cr4() | CR4_PSE);
   set_cr3((uintptr_t)pdt);
+}
+
+static void setup_gdt()
+{
+  // XXX Setup kernel code/data segments and then code/stack segments for 32-bit
+  // and 16-bit protected mode.
+}
+
+static void setup_idt()
+{
+  // XXX Setup task gates for all interrupt vectors
+}
+
+void setup_arch()
+{
+  setup_paging();
+  setup_gdt();
+  setup_idt();
 }
