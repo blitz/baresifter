@@ -39,7 +39,7 @@ void setup_paging()
 {
   const uintptr_t up = get_user_page();
 
-  assert((boot_pml4[bit_select(48, 49, up)] & ~0xFFF) == (uintptr_t)boot_pdpt, "PML4 is broken");
+  assert((boot_pml4[bit_select(48, 39, up)] & ~0xFFF) == (uintptr_t)boot_pdpt, "PML4 is broken");
 
   boot_pdpt[bit_select(39, 30, up)] = (uintptr_t)user_pd | PTE_P | PTE_U;
   user_pd[bit_select(30, 21, up)] = (uintptr_t)user_pt | PTE_P | PTE_U;
