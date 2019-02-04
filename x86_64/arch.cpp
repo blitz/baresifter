@@ -13,11 +13,11 @@ static idt_desc idt[irq_entry_count];
 static tss tss;
 static gdt_desc gdt[6] {
   {},
-  gdt_desc::kern_code_desc(),
-  gdt_desc::kern_data_desc(),
+  gdt_desc::kern_code64_desc(),
+  gdt_desc::kern_data64_desc(),
   gdt_desc::tss_desc(&tss),
-  gdt_desc::user_code_desc(),
-  gdt_desc::user_data_desc(),
+  gdt_desc::user_code64_desc(),
+  gdt_desc::user_data64_desc(),
 };
 
 // The RIP where execution continues after a user space exception.

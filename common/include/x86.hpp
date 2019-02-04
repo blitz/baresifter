@@ -109,7 +109,7 @@ struct gdt_desc {
     return t;
   }
 
-  static gdt_desc kern_code_desc()
+  static gdt_desc kern_code64_desc()
   {
     gdt_desc t;
     t.type_dpl = 0b10011011;
@@ -117,7 +117,7 @@ struct gdt_desc {
     return t;
   }
 
-  static gdt_desc kern_data_desc()
+  static gdt_desc kern_data64_desc()
   {
     gdt_desc t;
     t.type_dpl = 0b10010011;
@@ -125,7 +125,7 @@ struct gdt_desc {
     return t;
   }
 
-  static gdt_desc user_code_desc()
+  static gdt_desc user_code64_desc()
   {
     gdt_desc t;
     t.type_dpl = 0b11111011;
@@ -133,7 +133,7 @@ struct gdt_desc {
     return t;
   }
 
-  static gdt_desc user_data_desc()
+  static gdt_desc user_data64_desc()
   {
     gdt_desc t;
     t.type_dpl = 0b11110011;
