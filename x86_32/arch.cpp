@@ -20,8 +20,9 @@ char *get_user_page_backing()
 
 uintptr_t get_user_page()
 {
-  // XXX
-  return 0;
+  // Needs to be in the reach of 16-bit code, so we don't need a different
+  // mapping for 16-bit code.
+  return 1UL << 20 /* MiB */;
 }
 
 exception_frame execute_user(uintptr_t rip)
@@ -49,7 +50,10 @@ void setup_arch()
     pdt[idx] = c | PTE_P | PTE_W | PTE_PS;
   }
 
-  // TODO Map user page
+  // Map user page
+  assert(get_user_page() >= iend, "User page cannot be mapped into kernel area");
+  pdt[bit_select(32, 22, get_user_page())] = reinterpret_cast<uintptr_t>(user_pt) | PTE_U | PTE_P;
+  user_pt[bit_select(22, 12, get_user_page())] = reinterpret_cast<uintptr_t>(get_user_page_backing()) | PTE_U | PTE_P;
 
   set_cr4(get_cr4() | CR4_PSE);
   set_cr3((uintptr_t)pdt);

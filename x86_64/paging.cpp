@@ -30,11 +30,6 @@ char *get_user_page_backing()
   return user_page_backing;
 }
 
-static uint64_t bit_select(int high, int low, uint64_t value)
-{
-  return (value >> low) & ((1UL << (high - low)) - 1);
-}
-
 void setup_paging()
 {
   const uintptr_t up = get_user_page();

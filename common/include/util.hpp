@@ -9,6 +9,13 @@
 template <typename T, size_t N>
 constexpr size_t array_size(T(&)[N]) { return N; }
 
+// Return the bits in the range from high (non-inclusive) to low (inclusive)
+// extracted from value.
+inline uint64_t bit_select(int high, int low, uint64_t value)
+{
+  return (value >> low) & ((1UL << (high - low)) - 1);
+}
+
 void print(const char *s);
 
 struct formatted_int {
