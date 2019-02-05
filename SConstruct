@@ -50,7 +50,7 @@ bare64_env.Append(CCFLAGS=" -m64 -march=x86-64 -mno-red-zone",
                   ASFLAGS=" -felf64")
 
 bare32_env = common_bare_env.Clone(ARCH_NAME="x86_32")
-bare32_env.Append(CCFLAGS=" -m32 -march=i686",
+bare32_env.Append(CCFLAGS=" -m32 -march=i686 -mregparm=3 -fomit-frame-pointer",
                   ASFLAGS=" -felf32")
 
 for env in [bare64_env, bare32_env]:
