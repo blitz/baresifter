@@ -97,6 +97,14 @@ struct gdt_desc {
 #endif
   }
 
+  // Set the maximum possible limit for the segment descriptor. What this means
+  // depends on the G (granularity) bit.
+  void set_max_limit()
+  {
+    limit_lo = 0xFFFF;
+    limit_flags |= 0xF;
+  }
+
   static gdt_desc tss_desc(tss const *base)
   {
     gdt_desc t;
@@ -109,6 +117,7 @@ struct gdt_desc {
     return t;
   }
 
+  // A flat 64-bit CPL0 code segment.
   static gdt_desc kern_code64_desc()
   {
     gdt_desc t;
@@ -117,11 +126,32 @@ struct gdt_desc {
     return t;
   }
 
+  // A flat 32-bit CPL0 code segment.
+  static gdt_desc kern_code32_desc()
+  {
+    gdt_desc t;
+    t.type_dpl = 0b10011011;
+    t.limit_flags = 0b11000000;
+    t.set_max_limit();
+    return t;
+  }
+
+  // A flat 64-bit CPL0 data segment.
   static gdt_desc kern_data64_desc()
   {
     gdt_desc t;
     t.type_dpl = 0b10010011;
     t.limit_flags = 0b10100000;
+    return t;
+  }
+
+  // A flat 32-bit CPL0 data segment.
+  static gdt_desc kern_data32_desc()
+  {
+    gdt_desc t;
+    t.type_dpl = 0b10010011;
+    t.limit_flags = 0b11000000;
+    t.set_max_limit();
     return t;
   }
 

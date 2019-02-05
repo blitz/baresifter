@@ -1,4 +1,5 @@
 #include "arch.hpp"
+#include "selectors.hpp"
 #include "util.hpp"
 #include "x86.hpp"
 
@@ -12,6 +13,8 @@ alignas(page_size) static uint32_t pdt[page_size / sizeof(uint32_t)];
 alignas(page_size) static uint32_t user_pt[page_size / sizeof(uint32_t)];
 
 alignas(page_size) static char user_page_backing[page_size];
+
+static tss tss;
 
 char *get_user_page_backing()
 {
@@ -37,7 +40,6 @@ static bool is_aligned(uint64_t v, int order)
   return 0 == (v & ((uint64_t(1) << order) - 1));
 }
 
-
 static void setup_paging()
 {
   uintptr_t istart = reinterpret_cast<uintptr_t>(_image_start);
@@ -54,7 +56,7 @@ static void setup_paging()
   // Map user page
   uintptr_t up = get_user_page();
 
-  assert(up >= iend, "User page cannot be mapped into kernel area");
+  assert(up + page_size <= istart, "User page cannot be mapped into kernel area");
   pdt[bit_select(32, 22, up)] = reinterpret_cast<uintptr_t>(user_pt) | PTE_U | PTE_P;
   user_pt[bit_select(22, 12, up)] = reinterpret_cast<uintptr_t>(get_user_page_backing()) | PTE_U | PTE_P;
 
@@ -64,8 +66,30 @@ static void setup_paging()
 
 static void setup_gdt()
 {
-  // XXX Setup kernel code/data segments and then code/stack segments for 32-bit
-  // and 16-bit protected mode.
+  static gdt_desc gdt[] {
+    {},
+    gdt_desc::kern_code32_desc(),
+    gdt_desc::kern_data32_desc(),
+    gdt_desc::tss_desc(&tss),
+  };
+
+  lgdt(gdt);
+  ltr(ring0_tss_selector);
+
+  // Reload code segment descriptor
+  asm volatile ("ljmp %[selector], $1f\n"
+                "1:\n"
+                :: [selector] "i" (static_cast<uint32_t>(ring0_code_selector)));
+
+  // Reload data segment descriptors
+  asm volatile ("mov %0, %%ss\n"
+                "mov %0, %%ds\n"
+                "mov %0, %%es\n"
+                "mov %0, %%fs\n"
+                "mov %0, %%gs\n"
+                :: "r" (ring0_data_selector));
+
+  // XXX Setup code/stack segments for 32-bit and 16-bit protected mode.
 }
 
 static void setup_idt()
