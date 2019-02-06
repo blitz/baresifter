@@ -37,12 +37,6 @@ uintptr_t get_user_page()
   return 1UL << 20 /* MiB */;
 }
 
-exception_frame execute_user(uintptr_t rip)
-{
-  // XXX
-  return {};
-}
-
 static bool is_aligned(uint64_t v, int order)
 {
   assert(order < sizeof(v)*8, "Order out of range");
@@ -80,9 +74,13 @@ static void setup_gdt()
     gdt_desc::kern_code32_desc(),
     gdt_desc::kern_data32_desc(),
     gdt_desc::tss_desc(&tss),
+    gdt_desc::user_code32_desc(),
+    gdt_desc::user_data32_desc(),
   };
 
   lgdt(gdt);
+
+  tss.ss0 = ring0_data_selector;
   ltr(ring0_tss_selector);
 
   // Reload code segment descriptor
@@ -90,13 +88,14 @@ static void setup_gdt()
                 "1:\n"
                 :: [selector] "i" (static_cast<uint32_t>(ring0_code_selector)));
 
-  // Reload data segment descriptors
+  // Reload data segment descriptors. We load user selectors for everything
+  // except SS to avoid having to reload them.
   asm volatile ("mov %0, %%ss\n"
-                "mov %0, %%ds\n"
-                "mov %0, %%es\n"
-                "mov %0, %%fs\n"
-                "mov %0, %%gs\n"
-                :: "r" (ring0_data_selector));
+                "mov %1, %%ds\n"
+                "mov %1, %%es\n"
+                "mov %1, %%fs\n"
+                "mov %1, %%gs\n"
+                :: "r" (ring0_data_selector), "r" (ring3_data_selector));
 
   // XXX Setup code/stack segments for 32-bit and 16-bit protected mode.
 }
@@ -112,7 +111,8 @@ static void print_exception(exception_frame const &ef)
 
 void irq_entry(exception_frame &ef)
 {
-  if ((ef.ss & 3) and ring0_continuation) {
+  // We have to check CS here, because for kernel exceptions SS is not pushed.
+  if ((ef.cs & 3) and ring0_continuation) {
     auto ret = ring0_continuation;
     ring0_continuation = nullptr;
 
@@ -130,6 +130,43 @@ void irq_entry(exception_frame &ef)
   print_exception(ef);
   format("!!! We're dead...\n");
   wait_forever();
+}
+
+// Execute user code at the specified address. Returns after an exception with
+// the details of the exception.
+exception_frame execute_user(uintptr_t ip)
+{
+  static uint32_t clobbered_ebp;
+  exception_frame user {};
+
+  user.cs = ring3_code_selector;
+  user.ip = ip;
+  user.ss = ring3_data_selector;
+  user.eflags = (1 /* TF */ << 8) | 2;
+
+  ring3_exception_frame = &user;
+
+  // Prepare our stack to call irq_exit and exit to user space. We save a
+  // continuation so we return here after an exception.
+  //
+  // TODO If we get a ring0 exception, we have a somewhat clobbered stack pointer.
+  asm ("mov %%ebp, %[ebp_save]\n"
+       "lea 1f, %%eax\n"
+       "mov %%eax, %[cont]\n"
+       "mov %%esp, %[ring0_rsp]\n"
+       "lea %[user], %%esp\n"
+       "jmp irq_exit\n"
+       "1:\n"
+       "mov %[ebp_save], %%ebp\n"
+       : [ring0_rsp] "=m" (tss.esp0), [cont] "=m" (ring0_continuation),
+         [user] "+m" (user), [ebp_save] "=m" (clobbered_ebp)
+       :
+       // Everything except EBP is clobbered, because we come back via irq_entry
+       // after basically executing random bytes.
+       : "eax", "ecx", "edx", "ebx", "esi", "edi",
+         "memory");
+
+  return user;
 }
 
 static void setup_idt()

@@ -62,6 +62,8 @@ static void self_test_instruction_length()
             0x81, 0x84, 0x80, 0x23,
             0xdf, 0x06, 0x7e, 0x89,
             0xab, 0xcd, 0xef }},
+
+    // TODO Test writing zero to DS. We should not crash for this.
   };
 
   bool success = true;

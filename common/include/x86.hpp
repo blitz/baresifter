@@ -155,6 +155,7 @@ struct gdt_desc {
     return t;
   }
 
+  // A flat 32-bit CPL0 code segment.
   static gdt_desc user_code64_desc()
   {
     gdt_desc t;
@@ -163,6 +164,17 @@ struct gdt_desc {
     return t;
   }
 
+  // A flat 32-bit CPL3 code segment.
+  static gdt_desc user_code32_desc()
+  {
+    gdt_desc t;
+    t.type_dpl = 0b11111011;
+    t.limit_flags = 0b11000000;
+    t.set_max_limit();
+    return t;
+  }
+
+  // A flat 64-bit CPL3 data segment.
   static gdt_desc user_data64_desc()
   {
     gdt_desc t;
@@ -170,6 +182,17 @@ struct gdt_desc {
     t.limit_flags = 0b10100000;
     return t;
   }
+
+  // A flat 32-bit CPL3 data segment.
+  static gdt_desc user_data32_desc()
+  {
+    gdt_desc t;
+    t.type_dpl = 0b11110011;
+    t.limit_flags = 0b11000000;
+    t.set_max_limit();
+    return t;
+  }
+
 };
 
 #ifdef __x86_64__
