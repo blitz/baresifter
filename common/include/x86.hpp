@@ -39,16 +39,16 @@ struct tss {
 #else
   uint16_t prev_task;
   uint16_t reserved0;
-  uint32_t rsp0;
+  uint32_t esp0;
   uint32_t ss0;
 
-  uint32_t rsp1;
+  uint32_t esp1;
   uint32_t ss1;
 
-  uint32_t rsp2;
+  uint32_t esp2;
   uint32_t ss2;
 
-  uint32_t rsp3;
+  uint32_t esp3;
   uint32_t ss3;
 
   uint32_t cr3;

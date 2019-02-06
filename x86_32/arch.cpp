@@ -1,7 +1,10 @@
 #include "arch.hpp"
+#include "entry.hpp"
 #include "selectors.hpp"
 #include "util.hpp"
 #include "x86.hpp"
+
+extern "C" void irq_entry(exception_frame &);
 
 extern "C" char _image_start[];
 extern "C" char _image_end[];
@@ -15,6 +18,12 @@ alignas(page_size) static uint32_t user_pt[page_size / sizeof(uint32_t)];
 alignas(page_size) static char user_page_backing[page_size];
 
 static tss tss;
+
+// The RIP where execution continues after a user space exception.
+static void *ring0_continuation = nullptr;
+
+// The place where to store exception frames from user space.
+static exception_frame *ring3_exception_frame = nullptr;
 
 char *get_user_page_backing()
 {
@@ -92,9 +101,49 @@ static void setup_gdt()
   // XXX Setup code/stack segments for 32-bit and 16-bit protected mode.
 }
 
+static void print_exception(exception_frame const &ef)
+{
+  format("!!! exception ", ef.vector, " (", hex(ef.error_code), ") at ",
+         hex(ef.cs), ":", hex(ef.ip), "\n");
+  format("!!! CR2 ", hex(get_cr2()), "\n");
+  format("!!! EDI ", hex(ef.edi), "\n");
+  format("!!! ESI ", hex(ef.esi), "\n");
+}
+
+void irq_entry(exception_frame &ef)
+{
+  if ((ef.ss & 3) and ring0_continuation) {
+    auto ret = ring0_continuation;
+    ring0_continuation = nullptr;
+
+    if (ring3_exception_frame) {
+      *ring3_exception_frame = ef;
+      ring3_exception_frame = nullptr;
+    }
+
+    asm ("mov %0, %%esp\n"
+         "jmp *%1\n"
+         :: "r" (tss.esp0), "r" (ret) : "memory");
+    __builtin_unreachable();
+  }
+
+  print_exception(ef);
+  format("!!! We're dead...\n");
+  wait_forever();
+}
+
 static void setup_idt()
 {
-  // XXX Setup task gates for all interrupt vectors
+  static idt_desc idt[irq_entry_count];
+  size_t entry_fn_size = (irq_entry_end - irq_entry_start) / irq_entry_count;
+
+  for (size_t i = 0; i < array_size(idt); i++) {
+    idt[i] = idt_desc::interrupt_gate(ring0_code_selector,
+                                      reinterpret_cast<uint64_t>(irq_entry_start + i*entry_fn_size),
+                                      0, 0);
+  }
+
+  lidt(idt);
 }
 
 void setup_arch()
