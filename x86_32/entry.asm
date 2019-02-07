@@ -26,6 +26,12 @@ save_context:
   clts                          ; enable FPU
   pusha
 
+  mov eax, 0x2b                 ; Userspace might have destroyed these
+  mov ds, eax
+  mov es, eax
+  mov fs, eax
+  mov gs, eax
+
   mov eax, esp                  ; exception_frame
   call irq_entry
 irq_exit:

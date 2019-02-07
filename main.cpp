@@ -66,9 +66,10 @@ static void self_test_instruction_length()
     { 2, { 0x66, 0x48 } }, // dec ax
 #endif
     { 6, { 0xC7, 0xF8, 0x00, 0x00, 0x00, 0x00 } }, // xbegin 0x6
+    // This tests whether we fixup the direction flag when coming back from userspace.
     { 1, { 0xFD } }, // std
-
-    // TODO Test writing zero to DS. We should not crash for this.
+    // This tests whether we fixup segment registers when coming back from userspace.
+    { 2, { 0x8e, 0xd8 } }, // mov ds, eax
   };
 
   bool success = true;
