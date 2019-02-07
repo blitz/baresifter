@@ -63,8 +63,9 @@ static void setup_paging()
   pdt[bit_select(32, 22, up)] = reinterpret_cast<uintptr_t>(user_pt) | PTE_U | PTE_P;
   user_pt[bit_select(22, 12, up)] = reinterpret_cast<uintptr_t>(get_user_page_backing()) | PTE_U | PTE_P;
 
-  set_cr4(get_cr4() | CR4_PSE);
+  set_cr4(get_cr4() | CR4_PSE | CR4_SMEP);
   set_cr3((uintptr_t)pdt);
+  set_cr0(get_cr0() | CR0_PG | CR0_WP);
 }
 
 static void setup_gdt()

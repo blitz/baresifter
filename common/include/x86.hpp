@@ -20,8 +20,12 @@ enum : mword_t {
   PTE_PS = 1 << 7,
 };
 
-enum {
+enum : mword_t {
+  CR0_WP = 1 << 16,
+  CR0_PG = 1U << 31,
+
   CR4_PSE = 1 << 4,
+  CR4_SMEP = 1 << 20,
 };
 
 // Task State Segment
