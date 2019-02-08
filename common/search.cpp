@@ -122,6 +122,7 @@ void search_engine::start_over(size_t length)
 
 bool search_engine::find_next_candidate()
 {
+ again:
   current_.raw[increment_at_]++;
 
   if (current_.raw[increment_at_] == 0) {
@@ -136,7 +137,7 @@ bool search_engine::find_next_candidate()
       current_ = {};
     }
 
-    return find_next_candidate();
+    goto again;
   }
 
   auto const state = analyze_prefixes(current_);
@@ -145,8 +146,9 @@ bool search_engine::find_next_candidate()
   // insight. Also enforce order on prefixes to further reduce search space.
   if (state.total_prefix_bytes() != current_prefixes_ or
       state.has_duplicated_prefixes() or
-      not state.has_ordered_prefixes())
-    return find_next_candidate();
+      not state.has_ordered_prefixes()) {
+    goto again;
+  }
 
   return true;
 }
