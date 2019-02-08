@@ -32,9 +32,6 @@ static constexpr int opcode_to_prefix_group(uint8_t byte)
   case 0x67:                    // address size override
     group = 3;
     break;
-  case 0x40 ... 0x4F:           // REX prefixes
-    group = 4;
-    break;
   }
 
   return group;
@@ -55,8 +52,8 @@ static prefix_lut prefix_group_lut {create_prefix_group_lut()};
 
 // Encapsulates which prefixes are there, where and how many there are.
 struct prefix_state {
-  uint8_t count[5] {};          // Count of prefixes in each group.
-  uint8_t position[5] {};       // Position of each prefix (tracked per group)
+  uint8_t count[4] {};          // Count of prefixes in each group.
+  uint8_t position[4] {};       // Position of each prefix (tracked per group)
 
   size_t total_prefix_bytes() const
   {
