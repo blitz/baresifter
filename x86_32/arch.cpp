@@ -42,7 +42,7 @@ uintptr_t get_user_page()
 
 static bool is_aligned(uint64_t v, int order)
 {
-  assert(order < sizeof(v)*8, "Order out of range");
+  assert(order < (int)sizeof(v)*8, "Order out of range");
   return 0 == (v & ((uint64_t(1) << order) - 1));
 }
 
