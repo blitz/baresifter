@@ -154,6 +154,8 @@ void start()
 
   format(">>> Probing instruction space.\n");
 
+  // TODO Add option to control the number of prefix bytes as command line
+  // parameter.
   search_engine search;
   execution_attempt last_attempt;
 
