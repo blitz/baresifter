@@ -33,8 +33,11 @@ char *get_user_page_backing()
 uintptr_t get_user_page()
 {
   // Needs to be in the reach of 16-bit code, so we don't need a different
-  // mapping for 16-bit code.
-  return 1UL << 20 /* MiB */;
+  // mapping for 16-bit code. Don't use 1MB directly, because this will case the
+  // sifting algorithm to find accidentally generate valid memory addresses and
+  // needlessly enlarge the search space.
+
+  return (1UL << 20 /* MiB */) + page_size;
 }
 
 static bool is_aligned(uint64_t v, int order)
