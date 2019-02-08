@@ -23,6 +23,8 @@
 %define XCR0_SSE (1 << 1)
 %define XCR0_AVX (1 << 2)
 
+%define MAX_CMDLINE_SIZE 256
+
 bits 32
 
 extern start, _image_start, wait_forever, execute_constructors
@@ -32,6 +34,8 @@ global _start, kern_stack
 section .bss
   kern_stack resb 4 * PAGE_SIZE
 kern_stack_end:
+
+  cmdline resb MAX_CMDLINE_SIZE
 
 section .text._start
 _mbheader:
@@ -58,6 +62,28 @@ _boot_gdt_end:
 %define RING0_DATA_SELECTOR 0x20
 
 _start:
+  ; Is there a command line? If not, we keep the empty string as command line.
+  test dword [ebx], 0x04
+  jz no_cmdline
+
+  ; Get command line pointer from multiboot info
+  mov esi, [ebx + 16]
+
+  ; Find end of string
+  xor eax, eax
+  mov edi, esi
+  mov ecx, MAX_CMDLINE_SIZE - 1
+  repne scasb
+
+  ; Calculate string length
+  sub edi, esi
+  mov ecx, edi
+
+  ; Copy string
+  lea edi, [cmdline]
+  rep movsb
+
+no_cmdline:
 
   ; Fill out PML4
   mov eax, boot_pdpt
@@ -117,5 +143,6 @@ _start_long:
 
   lea rsp, [kern_stack_end]
   call execute_constructors
+  lea edi, [cmdline]
   push wait_forever
   jmp start

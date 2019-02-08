@@ -138,9 +138,10 @@ static bool is_interesting_change(execution_attempt const &last,
   return true;
 }
 
-void start()
+void start(char *cmdline)
 {
   print_logo();
+  format(">>> Command line is ", cmdline, "\n");
 
   const auto sig = get_cpu_signature();
   format(">>> CPU is ", sig.vendor, " ", hex(sig.signature, 8, false), ".\n");

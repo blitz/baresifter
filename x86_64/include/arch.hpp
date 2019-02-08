@@ -39,7 +39,7 @@ uintptr_t get_user_page();
 char *get_user_page_backing();
 
 // The entry point that is called by the assembly bootstrap code.
-extern "C" void start();
+extern "C" void start(char *cmdline);
 
 // Try to execute a single userspace instruction and return the exception that
 // resulted.
