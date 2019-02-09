@@ -129,12 +129,7 @@ bool search_engine::find_next_candidate()
     // We've wrapped at our current position, so go left one byte. If we hit
     // the beginning, we are done.
     if (unlikely(increment_at_-- == 0)) {
-      if (++current_prefixes_ > max_prefixes_)
-        return false;
-
-      // Start from scratch with more prefixes.
-      increment_at_ = 0;
-      current_ = {};
+      return false;
     }
 
     goto again;
@@ -144,7 +139,7 @@ bool search_engine::find_next_candidate()
 
   // Duplicated prefixes make the search space explode without generating
   // insight. Also enforce order on prefixes to further reduce search space.
-  if (state.total_prefix_bytes() != current_prefixes_ or
+  if (state.total_prefix_bytes() > max_prefixes_ or
       state.has_duplicated_prefixes() or
       not state.has_ordered_prefixes()) {
     goto again;

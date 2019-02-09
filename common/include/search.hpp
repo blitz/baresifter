@@ -5,7 +5,6 @@
 class search_engine {
   instruction_bytes current_;
   size_t increment_at_ = 0;
-  size_t current_prefixes_ = 0;
 
   const size_t max_prefixes_;
 
