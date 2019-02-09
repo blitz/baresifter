@@ -1,5 +1,6 @@
 #include "arch.hpp"
 #include "avx.hpp"
+#include "disassemble.hpp"
 #include "entry.hpp"
 #include "paging.hpp"
 #include "selectors.hpp"
@@ -128,4 +129,6 @@ void setup_arch(const char *mode)
   setup_idt();
   setup_paging();
   try_setup_avx();
+
+  setup_disassembler(64);
 }

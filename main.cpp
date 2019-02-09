@@ -176,11 +176,6 @@ void start(char *cmdline)
   format(">>> CPU is ", sig.vendor, " ", hex(sig.signature, 8, false), ".\n");
 
   setup_arch(options.mode);
-#ifdef __x86_64__
-  setup_disassembler(64);
-#else
-  setup_disassembler(32);
-#endif
 
   format(">>> Executing self test.\n");
   self_test_instruction_length();

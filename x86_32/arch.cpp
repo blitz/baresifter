@@ -1,4 +1,5 @@
 #include "arch.hpp"
+#include "disassemble.hpp"
 #include "entry.hpp"
 #include "selectors.hpp"
 #include "util.hpp"
@@ -189,7 +190,11 @@ static void setup_idt()
 
 void setup_arch(const char * /* mode */)
 {
+  // TODO Interpret mode
+
   setup_paging();
   setup_gdt();
   setup_idt();
+
+  setup_disassembler(32);
 }
