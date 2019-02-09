@@ -14,3 +14,4 @@ EXTERN_C char *__strchrnul(const char *s, int c);
 EXTERN_C size_t strcspn(const char *s, const char *c);
 EXTERN_C size_t strspn(const char *s, const char *c);
 EXTERN_C char *strtok(char *s, const char *sep);
+EXTERN_C char *strtok_r(char *s, const char *sep, char **p);
