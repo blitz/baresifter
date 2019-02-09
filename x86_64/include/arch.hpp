@@ -46,4 +46,4 @@ extern "C" void start(char *cmdline);
 exception_frame execute_user(uintptr_t rip);
 
 // Setup paging, descriptor tables and instruction set extensions.
-void setup_arch();
+void setup_arch(const char *mode);

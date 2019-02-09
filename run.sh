@@ -6,6 +6,7 @@ KERNEL=baresifter.x86_64.elf
 
 if [ $# -gt 0 ]; then
     KERNEL=$1
+    shift
 fi
 
 scons -s -j$(nproc) "$KERNEL"
@@ -23,4 +24,5 @@ qemu-system-x86_64 \
      -enable-kvm -cpu host \
      -no-reboot \
      -display none -vga none -debugcon stdio \
-     -kernel "$KERNEL"
+     -kernel "$KERNEL" \
+     -append "$*"

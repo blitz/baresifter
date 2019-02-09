@@ -118,7 +118,7 @@ exception_frame execute_user(uintptr_t rip)
   return user;
 }
 
-void setup_arch()
+void setup_arch(const char * /*mode*/)
 {
   setup_idt();
   setup_paging();

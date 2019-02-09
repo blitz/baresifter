@@ -1,5 +1,6 @@
 #include <cstdint>
 #include <cstring>
+#include <cstdlib>
 
 #include "arch.hpp"
 #include "cpuid.hpp"
@@ -138,15 +139,43 @@ static bool is_interesting_change(execution_attempt const &last,
   return true;
 }
 
+struct options {
+  size_t prefixes = 0;
+  const char *mode = nullptr;
+};
+
+// This will modify cmdline.
+static options parse_and_destroy_cmdline(char *cmdline)
+{
+  options res;
+  char *tok_state = nullptr;;
+
+  for (char *tok = strtok_r(cmdline, " ", &tok_state); tok;
+       tok = strtok_r(nullptr, " ", &tok_state)) {
+    char *kv_state = nullptr;
+    const char *key = strtok_r(tok, "=", &kv_state);
+    const char *value = key ? strtok_r(nullptr, "", &kv_state) : nullptr;
+
+    if (not value) continue;
+
+    if (strcmp(key, "mode") == 0)
+      res.mode = value;
+    if (strcmp(key, "prefixes") == 0)
+      res.prefixes = atoi(value);
+  }
+
+  return res;
+}
+
 void start(char *cmdline)
 {
   print_logo();
-  format(">>> Command line is ", cmdline, "\n");
 
+  const auto options = parse_and_destroy_cmdline(cmdline);
   const auto sig = get_cpu_signature();
   format(">>> CPU is ", sig.vendor, " ", hex(sig.signature, 8, false), ".\n");
 
-  setup_arch();
+  setup_arch(options.mode);
 #ifdef __x86_64__
   setup_disassembler(64);
 #else
@@ -157,11 +186,13 @@ void start(char *cmdline)
   self_test_instruction_length();
   disassemble_self_test();
 
-  format(">>> Probing instruction space.\n");
+  format(">>> Probing instruction space with up to ", options.prefixes,
+         " legacy prefix", options.prefixes == 1 ? "" : "es",
+         ".\n");
 
   // TODO Add option to control the number of prefix bytes as command line
   // parameter.
-  search_engine search;
+  search_engine search { options.prefixes };
   execution_attempt last_attempt;
 
   do {
