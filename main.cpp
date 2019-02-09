@@ -185,8 +185,6 @@ void start(char *cmdline)
          " legacy prefix", options.prefixes == 1 ? "" : "es",
          ".\n");
 
-  // TODO Add option to control the number of prefix bytes as command line
-  // parameter.
   search_engine search { options.prefixes };
   execution_attempt last_attempt;
 
