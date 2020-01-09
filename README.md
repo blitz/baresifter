@@ -64,7 +64,7 @@ The second line is an undocumented instruction, i.e. the CPU executed it
 successfully (or at least didn't throw an undefined opcode exception), but
 Capstone has no idea what it is.
 
-The second line is
+The third line is
 a [Capstone bug](https://github.com/aquynh/capstone/pull/776). Here both the CPU
 and Capstone both decoded an instruction, the CPU was able to execute it, but
 Capstone and the CPU disagree on the length of that instruction.
