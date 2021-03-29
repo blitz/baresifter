@@ -3,10 +3,6 @@
 import itertools
 import os
 
-version_inc = Command("common/version.inc", [],
-                      "git describe --always --dirty | sed -E 's/^(.*)$/\"\\1\"/' > $TARGET")
-AlwaysBuild(version_inc)
-
 capstone_defines = [
     "CAPSTONE_DIET",            # No string mnemonics
     "CAPSTONE_HAS_X86",
@@ -44,6 +40,10 @@ common_bare_env = Environment(CXX=os.environ.get("CXX", "clang++"),
                               CPPPATH=["#$ARCH_NAME/include", "#common/include", "#include", "#capstone/include"],
                               CPPDEFINES=capstone_defines,
                               LINKFLAGS="-nostdlib -g -Xlinker -n -Xlinker -T -Xlinker")
+
+version_inc = common_bare_env.Command("common/version.inc", [],
+                                      "git describe --always --dirty | sed -E 's/^(.*)$/\"\\1\"/' > $TARGET")
+AlwaysBuild(version_inc)
 
 bare64_env = common_bare_env.Clone(ARCH_NAME="x86_64")
 bare64_env.Append(CCFLAGS=" -m64 -march=x86-64 -mno-red-zone",
