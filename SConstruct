@@ -23,7 +23,7 @@ capstone_src = [
     "capstone/arch/X86/X86Module.c",
 ]
 
-common_cc_flags = "-Wall -Os -g -pipe -ffreestanding -nostdinc -mno-avx -mno-avx2 -fno-asynchronous-unwind-tables"
+common_cc_flags = "-Wall -O2 -g -pipe -ffreestanding -nostdinc -mno-avx -mno-avx2 -fno-asynchronous-unwind-tables -fno-stack-protector"
 common_cxx_flags = "-std=c++14 -fno-threadsafe-statics -fno-rtti -fno-exceptions -nostdinc++"
 
 common_bare_env = Environment(CXX=os.environ.get("CXX", "clang++"),

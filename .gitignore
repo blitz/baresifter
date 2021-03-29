@@ -1,3 +1,4 @@
+/.direnv
 /.scons*
 /common/version.inc
 *~
