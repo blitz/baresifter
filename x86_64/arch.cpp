@@ -111,7 +111,7 @@ exception_frame execute_user(uintptr_t rip)
          [user] "+m" (user), [rbp_save] "=m" (clobbered_rbp)
        :
        // Everything except RBP is clobbered, because we come back via irq_entry
-       // after basically executing random byte.
+       // after basically executing random bytes.
        : "rax", "rcx", "rdx", "rbx", "rsi", "rdi",
          "r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15",
          "memory");

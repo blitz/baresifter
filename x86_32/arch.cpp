@@ -142,6 +142,7 @@ void irq_entry(exception_frame &ef)
 exception_frame execute_user(uintptr_t ip)
 {
   static uint32_t clobbered_ebp;
+  static uint32_t clobbered_edi;
   exception_frame user {};
 
   user.cs = ring3_code_selector;
@@ -156,6 +157,7 @@ exception_frame execute_user(uintptr_t ip)
   //
   // TODO If we get a ring0 exception, we have a somewhat clobbered stack pointer.
   asm ("mov %%ebp, %[ebp_save]\n"
+       "mov %%edi, %[edi_save]\n"
        "lea 1f, %%eax\n"
        "mov %%eax, %[cont]\n"
        "mov %%esp, %[ring0_rsp]\n"
@@ -163,12 +165,14 @@ exception_frame execute_user(uintptr_t ip)
        "jmp irq_exit\n"
        "1:\n"
        "mov %[ebp_save], %%ebp\n"
+       "mov %[edi_save], %%edi\n"
        : [ring0_rsp] "=m" (tss.esp0), [cont] "=m" (ring0_continuation),
-         [user] "+m" (user), [ebp_save] "=m" (clobbered_ebp)
+         [user] "+m" (user), [ebp_save] "=m" (clobbered_ebp),
+         [edi_save] "=m" (clobbered_edi)
        :
-       // Everything except EBP is clobbered, because we come back via irq_entry
-       // after basically executing random bytes.
-       : "eax", "ecx", "edx", "ebx", "esi", "edi",
+       // Everything except EBP/RDI is clobbered, because we come back
+       // via irq_entry after basically executing random bytes.
+       : "eax", "ecx", "edx", "ebx", "esi",
          "memory");
 
   return user;
