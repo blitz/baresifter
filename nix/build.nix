@@ -12,6 +12,8 @@ stdenv.mkDerivation {
 
   BARESIFTER_VERSION = "Nix ${version}";
 
+  enableParallelBuilding = true;
+
   hardeningDisable = [ "all" ];
   dontStrip = true;
   dontPatchELF = true;

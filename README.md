@@ -19,16 +19,32 @@ to user space. It follows the same algorithm as outlined in the original
 
 ## Building and running
 
-The build is currently tested on Fedora 29. The build requirements are
+The build is currently tested on NixOS and other Linux distributions
+with Nix installed. If you haven't done so, [install
+Nix](https://nixos.org/download.html).
 
-- clang++ 5.0 or later,
-- scons, and
-- qemu with KVM support (for easy testing).
+Then enter a
+[nix-shell](https://nixos.org/guides/nix-pills/developing-with-nix-shell.html)
+and build baresifter:
 
-To start the build execute `scons -C src`.
+```sh
+% nix-shell
+# Dependencies are fetched. This might take a bit.
 
-Baresifter can be run in KVM with `./run.sh` and will output its results to the
-console.
+nix-shell % scons -C src
+```
+
+Once you have built baresifter, you can run it in Qemu:
+
+```sh
+# Execute 1000 instructions in Qemu's full emulation mode.
+nix-shell % baresifter-run tcg src/baresifter.x86_64.elf stop_after=1000
+...
+
+# Run forever with KVM enabled.
+nix-shell % baresifter-run kvm src/baresifter.x86_64.elf
+...
+```
 
 To run baresifter bare-metal, use either grub or
 [syslinux](https://www.syslinux.org/wiki/index.php?title=Mboot.c32) and boot
