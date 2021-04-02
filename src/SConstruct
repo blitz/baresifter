@@ -2,6 +2,7 @@
 
 import itertools
 import os
+import shlex
 
 capstone_defines = [
     "CAPSTONE_DIET",            # No string mnemonics
@@ -41,8 +42,13 @@ common_bare_env = Environment(CXX=os.environ.get("CXX", "clang++"),
                               CPPDEFINES=capstone_defines,
                               LINKFLAGS="-nostdlib -g -Xlinker -n -Xlinker -T -Xlinker")
 
+if "BARESIFTER_VERSION" in os.environ:
+    version_cmd = "echo {}".format(shlex.quote(os.environ["BARESIFTER_VERSION"]))
+else:
+    version_cmd = "git describe --always --dirty"
+
 version_inc = common_bare_env.Command("common/version.inc", [],
-                                      "git describe --always --dirty | sed -E 's/^(.*)$/\"\\1\"/' > $TARGET")
+                                      version_cmd + " | sed -E 's/^(.*)$/\"\\1\"/' > $TARGET")
 AlwaysBuild(version_inc)
 
 bare64_env = common_bare_env.Clone(ARCH_NAME="x86_64")
@@ -53,6 +59,7 @@ bare32_env = common_bare_env.Clone(ARCH_NAME="x86_32")
 bare32_env.Append(CCFLAGS=" -m32 -march=i686 -mregparm=3 -fomit-frame-pointer",
                   ASFLAGS=" -felf32")
 
+bins = []
 for env in [bare64_env, bare32_env]:
     source_directories = [".", "common", "musl", "$ARCH_NAME"]
     if env["ARCH_NAME"] == "x86_32":
@@ -64,4 +71,11 @@ for env in [bare64_env, bare32_env]:
                     for files in env.Glob("{}/*.{}".format(directory, extension)) ]
     source_files += capstone_src
 
-    env.Program(target="baresifter", source = ["$ARCH_NAME/standalone.lds"] + source_files)
+    bins.append(env.Program(target="baresifter", source = ["$ARCH_NAME/standalone.lds"] + source_files))
+
+
+# Installation
+
+install_env = Environment(PREFIX=ARGUMENTS.get("prefix", "/usr/local"))
+
+Alias("install", install_env.Install("$PREFIX/share/baresifter", bins))

@@ -1,6 +1,7 @@
 /.direnv
 /src/.scons*
 /src/common/version.inc
+/result*
 *~
 *.a
 *.elf
