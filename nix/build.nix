@@ -1,5 +1,4 @@
 { stdenv, scons, nasm, gnused }:
-
 let
   version = "0.0.0";
 in
