@@ -59,7 +59,9 @@ static void self_test_instruction_length()
     // Intel and AMD disagree on this one, so don't do this as part of the self-test.
     // { 6, { 0x66, 0xE9, 0x00, 0x00, 0x00, 0x00 } }, // jmp 0x6
 
-    { 5, { 0x66, 0x48, 0x0f, 0x6e, 0xc0 } }, // movq xmm0, rax
+    // Qemu's decoder gets this wrong, so also don't do this in the self-test.
+    // { 5, { 0x66, 0x48, 0x0f, 0x6e, 0xc0 } }, // movq xmm0, rax
+
     // lock add qword cs:[eax+4*eax+07e06df23h], 0efcdab89h
     { 15, { 0x2e, 0x67, 0xf0, 0x48,
             0x81, 0x84, 0x80, 0x23,
