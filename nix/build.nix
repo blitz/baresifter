@@ -7,9 +7,12 @@ stdenv.mkDerivation {
   inherit version;
 
   src = ../src;
-  hardeningDisable = [ "all" ];
 
   nativeBuildInputs = [ scons nasm gnused ];
 
   BARESIFTER_VERSION = "Nix ${version}";
+
+  hardeningDisable = [ "all" ];
+  dontStrip = true;
+  dontPatchELF = true;
 }

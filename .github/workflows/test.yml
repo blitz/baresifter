@@ -10,4 +10,4 @@ jobs:
       with:
         submodules: recursive
     - uses: cachix/install-nix-action@v12
-    - run: nix-build ./nix/release.nix -A baresifter
+    - run: nix-build ./nix/release.nix -A test-qemu-tcg
