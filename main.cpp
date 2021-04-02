@@ -161,8 +161,6 @@ static options parse_and_destroy_cmdline(char *cmdline)
 
     if (not value) continue;
 
-    if (strcmp(key, "mode") == 0)
-      res.mode = value;
     if (strcmp(key, "prefixes") == 0)
       res.prefixes = atoi(value);
   }
@@ -178,7 +176,7 @@ void start(char *cmdline)
   const auto sig = get_cpu_signature();
   format(">>> CPU is ", sig.vendor, " ", hex(sig.signature, 8, false), ".\n");
 
-  setup_arch(options.mode);
+  setup_arch();
 
   format(">>> Executing self test.\n");
   self_test_instruction_length();

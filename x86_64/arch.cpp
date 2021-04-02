@@ -119,13 +119,8 @@ exception_frame execute_user(uintptr_t rip)
   return user;
 }
 
-void setup_arch(const char *mode)
+void setup_arch()
 {
-  if (mode) {
-    format("!!! We don't support mode ", mode, " (or any other mode).\n");
-    wait_forever();
-  }
-
   setup_idt();
   setup_paging();
   try_setup_avx();

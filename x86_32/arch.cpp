@@ -192,10 +192,8 @@ static void setup_idt()
   lidt(idt);
 }
 
-void setup_arch(const char * /* mode */)
+void setup_arch()
 {
-  // TODO Interpret mode
-
   setup_paging();
   setup_gdt();
   setup_idt();
