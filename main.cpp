@@ -82,8 +82,9 @@ static void self_test_instruction_length()
 
   for (auto const &test : tests) {
     auto attempt = find_instruction_length(test.instr);
-    if (attempt.length != test.length)
+    if (attempt.length != test.length) {
       success = false;
+    }
   }
 
   format("Instruction length: ", (success ? "OK" : "b0rken!"), "\n");
@@ -145,8 +146,12 @@ static bool is_interesting_change(execution_attempt const &last,
 }
 
 struct options {
+  // We allow this many prefixes. Limiting prefixes is useful, because
+  // they make the search space explode.
   size_t prefixes = 0;
-  const char *mode = nullptr;
+
+  // After how many instructions do we stop. Zero means don't stop.
+  size_t stop_after = 0;
 };
 
 // This will modify cmdline.
@@ -165,6 +170,8 @@ static options parse_and_destroy_cmdline(char *cmdline)
 
     if (strcmp(key, "prefixes") == 0)
       res.prefixes = atoi(value);
+    if (strcmp(key, "stop_after") == 0)
+      res.stop_after = atoi(value);
   }
 
   return res;
@@ -174,7 +181,7 @@ void start(char *cmdline)
 {
   print_logo();
 
-  const auto options = parse_and_destroy_cmdline(cmdline);
+  auto options = parse_and_destroy_cmdline(cmdline);
   const auto sig = get_cpu_signature();
   format(">>> CPU is ", sig.vendor, " ", hex(sig.signature, 8, false), ".\n");
 
@@ -187,6 +194,8 @@ void start(char *cmdline)
   format(">>> Probing instruction space with up to ", options.prefixes,
          " legacy prefix", options.prefixes == 1 ? "" : "es",
          ".\n");
+  if (options.stop_after)
+    format(">>> Stopping after ", options.stop_after, " execution attemps.\n");
 
   search_engine search { options.prefixes };
   execution_attempt last_attempt;
@@ -205,7 +214,7 @@ void start(char *cmdline)
     }
 
     last_attempt = attempt;
-  } while (search.find_next_candidate());
+  } while (--options.stop_after > 0 && search.find_next_candidate());
 
   format(">>> Done!\n");
 
