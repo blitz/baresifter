@@ -2,14 +2,12 @@
 
 set -e -u
 
-KERNEL=baresifter.x86_64.elf
+KERNEL=src/baresifter.x86_64.elf
 
 if [ $# -gt 0 ]; then
     KERNEL=$1
     shift
 fi
-
-scons -s -j$(nproc) "$KERNEL"
 
 # Qemu only boots 32-bit ELFs
 if file "$KERNEL" | grep -q "ELF 64-bit"; then

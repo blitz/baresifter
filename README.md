@@ -22,7 +22,7 @@ The build is currently tested on Fedora 29. The build requirements are
 - scons, and
 - qemu with KVM support (for easy testing).
 
-To start the build execute `scons`.
+To start the build execute `scons -C src`.
 
 Baresifter can be run in KVM with `./run.sh` and will output its results to the
 console.
