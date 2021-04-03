@@ -137,12 +137,17 @@ void irq_entry(exception_frame &ef)
   wait_forever();
 }
 
+// These are used in the asm statement below. They can't be local
+// variables (not even static ones in execute_user), because the
+// compiler will use indirect memory addresses and we need plain
+// memory operands.
+__attribute__((used)) uint32_t clobbered_ebp;
+__attribute__((used)) uint32_t clobbered_edi;
+
 // Execute user code at the specified address. Returns after an exception with
 // the details of the exception.
 exception_frame execute_user(uintptr_t ip)
 {
-  static uint32_t clobbered_ebp;
-  static uint32_t clobbered_edi;
   exception_frame user {};
 
   user.cs = ring3_code_selector;
@@ -156,19 +161,18 @@ exception_frame execute_user(uintptr_t ip)
   // continuation so we return here after an exception.
   //
   // TODO If we get a ring0 exception, we have a somewhat clobbered stack pointer.
-  asm ("mov %%ebp, %[ebp_save]\n"
-       "mov %%edi, %[edi_save]\n"
+  asm ("mov %%ebp, clobbered_ebp\n"
+       "mov %%edi, clobbered_edi\n"
        "lea 1f, %%eax\n"
        "mov %%eax, %[cont]\n"
        "mov %%esp, %[ring0_rsp]\n"
        "lea %[user], %%esp\n"
        "jmp irq_exit\n"
        "1:\n"
-       "mov %[ebp_save], %%ebp\n"
-       "mov %[edi_save], %%edi\n"
+       "mov clobbered_ebp, %%ebp\n"
+       "mov clobbered_edi, %%edi\n"
        : [ring0_rsp] "=m" (tss.esp0), [cont] "=m" (ring0_continuation),
-         [user] "+m" (user), [ebp_save] "=m" (clobbered_ebp),
-         [edi_save] "=m" (clobbered_edi)
+         [user] "+m" (user)
        :
        // Everything except EBP/RDI is clobbered, because we come back
        // via irq_entry after basically executing random bytes.
