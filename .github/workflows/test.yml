@@ -10,4 +10,6 @@ jobs:
       with:
         submodules: recursive
     - uses: cachix/install-nix-action@v12
-    - run: nix-build ./nix/release.nix -A test-qemu-tcg
+    - run: |
+        nix-build ./nix/ci.nix -A test-x86_64-tcg
+        nix-build ./nix/ci.nix -A test-x86_32-tcg
