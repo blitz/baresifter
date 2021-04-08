@@ -8,7 +8,7 @@
 Baresifter is a 64-bit x86 instruction set fuzzer modeled
 after [Sandsifter](https://github.com/xoreaxeaxeax/sandsifter). In contrast to
 Sandsifter, Baresifter is intended to run bare-metal without any operating
-system.
+system. It's most easy to set up to run in a virtual machine.
 
 When loaded, the main fuzzing logic runs in ring0 as a tiny kernel. To safely
 execute arbitrary instructions, baresifter creates a single executable page in
