@@ -1,6 +1,17 @@
 #pragma once
 
-#include "disassemble.hpp"
+#include <cstdint>
+
+// A raw set of bytes representing an instruction (potentially).
+struct instruction_bytes {
+  // x86 instructions are at most 15 bytes long.
+  uint8_t raw[15];
+
+  template <typename... T>
+  constexpr instruction_bytes(T... v)
+  : raw {(uint8_t)v...}
+  {}
+};
 
 class search_engine {
   instruction_bytes current_;

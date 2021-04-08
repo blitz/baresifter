@@ -4,7 +4,6 @@
 
 #include "arch.hpp"
 #include "cpuid.hpp"
-#include "disassemble.hpp"
 #include "execution_attempt.hpp"
 #include "logo.hpp"
 #include "search.hpp"
@@ -96,29 +95,10 @@ static void self_test_instruction_length()
 static void print_instruction(instruction_bytes const &instr,
                               execution_attempt const &attempt)
 {
-  auto const disasm = disassemble(instr);
-
   // Prefix instruction, so it's easy to grep output.
-  format("E ", hex(attempt.exception, 2, false), " O ");
+  format("EXC ", hex(attempt.exception, 2, false), " ");
 
-  format(hex(disasm.instruction, 4, false), " ");
-
-  if (disasm.instruction != X86_INS_INVALID and disasm.length != attempt.length) {
-    // The CPU and Capstone successfully decoded an instruction, but they
-    // disagree about the length. This is likely a Capstone bug.
-    format("BUG ");
-  } else if (attempt.exception != 6 and attempt.length <= array_size(instr.raw) and
-             disasm.instruction == X86_INS_INVALID) {
-    // The CPU successfully executed an instruction (no #UD exception), but
-    // capstone is clueless what that is.
-    //
-    // Ignore cases where we ran over the instruction length limit.
-    format("UNKN");
-  } else {
-    format("OK  ");
-  }
-
-  format(attempt.length >= array_size(instr.raw) ? "!" : " ");
+  format(attempt.length >= array_size(instr.raw) ? "??" : "OK");
 
   format(" |");
   for (size_t i = 0; i < attempt.length and i < array_size(instr.raw); i++) {
@@ -189,7 +169,6 @@ void start(char *cmdline)
 
   format(">>> Executing self test.\n");
   self_test_instruction_length();
-  disassemble_self_test();
 
   format(">>> Probing instruction space with up to ", options.prefixes,
          " legacy prefix", options.prefixes == 1 ? "" : "es",

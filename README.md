@@ -57,33 +57,30 @@ serial port. The serial port is hardcoded, so you might need to change that:
 Baresifter outputs data in a tabular format that looks like:
 
 ```
-E <exc> O <capstone-instruction-id> <status> | <instruction hex bytes>
+EXC <exc> <OK|??> | <instruction hex bytes>
 ```
 
-`exc` is the CPU exception that was triggered, when baresifter tried to execute
-the instruction. Exception 1 (#DB) indicates that an instruction was
-successfully executed. The `capstone-instruction-id` is an integer that
-represents the instruction that Capstone decoded. A zero in this field means
-that Capstone could not decode the instruction. `status` is currently one of
-`BUG` (indicating a capstone bug), `UNKN` (indicating an undocumented
-instruction), or `OK` (nothing interesting was found).
+`exc` is the CPU exception that was triggered, when baresifter tried
+to execute the instruction. `OK` indicates the CPU decoded the
+instruction, `??` means we probably hit a bug in Baresifter. The rest
+are the instruction bytes in hexadecimal.
 
 A concrete example looks like this:
 
 ```
-E 0E O 0008 OK   | 00 14 6D 00 00 00 00
-E 01 O 0000 UNKN | 0F 0D 3E
-E 01 O 010A BUG  | 66 E9 00 00 00 00
+EXC 0D OK | 0F 08
+EXC 06 OK | 0F 0A
+EXC 01 OK | 0F 0D 00
 ```
 
-The first line is an instruction that decoded successfully and generated a page
-fault when executing (exception 0xE). Capstone knows this instruction.
+The first line is an instruction that decoded successfully and
+generated a general protection exception (#GP / 0x0D) when
+executing. In this case, it was a `invd` instruction. The second line
+is an invalid opcode (0x06). The third line is an instruction that
+decoded _and_ executed correctly by running into a #DB (0x01)
+exception.
 
-The second line is an undocumented instruction, i.e. the CPU executed it
-successfully (or at least didn't throw an undefined opcode exception), but
-Capstone has no idea what it is.
-
-The third line is
-a [Capstone bug](https://github.com/aquynh/capstone/pull/776). Here both the CPU
-and Capstone both decoded an instruction, the CPU was able to execute it, but
-Capstone and the CPU disagree on the length of that instruction.
+Earlier versions of Baresifter had a built-in disassembler to
+disassemble on-the-fly and find interesting discrepancies. This was
+removed in favor of offline analysis of the logs, but this offline
+analysis does not exist yet.

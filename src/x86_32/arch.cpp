@@ -1,5 +1,4 @@
 #include "arch.hpp"
-#include "disassemble.hpp"
 #include "entry.hpp"
 #include "selectors.hpp"
 #include "util.hpp"
@@ -201,6 +200,4 @@ void setup_arch()
   setup_paging();
   setup_gdt();
   setup_idt();
-
-  setup_disassembler(32);
 }

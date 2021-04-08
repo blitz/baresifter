@@ -4,26 +4,6 @@ import itertools
 import os
 import shlex
 
-capstone_defines = [
-    "CAPSTONE_DIET",            # No string mnemonics
-    "CAPSTONE_HAS_X86",
-    "CAPSTONE_X86_ATT_DISABLE",
-]
-
-capstone_src = [
-    "capstone/cs.c",
-    "capstone/MCInst.c",
-    "capstone/MCInstrDesc.c",
-    "capstone/MCRegisterInfo.c",
-    "capstone/SStream.c",
-    "capstone/utils.c",
-    "capstone/arch/X86/X86Disassembler.c",
-    "capstone/arch/X86/X86DisassemblerDecoder.c",
-    "capstone/arch/X86/X86IntelInstPrinter.c",
-    "capstone/arch/X86/X86Mapping.c",
-    "capstone/arch/X86/X86Module.c",
-]
-
 common_cc_flags = "-Wall -O2 -g -pipe -ffreestanding -nostdinc -mno-avx -mno-avx2 -fno-asynchronous-unwind-tables -fno-stack-protector"
 common_cxx_flags = "-std=c++14 -fno-threadsafe-statics -fno-rtti -fno-exceptions -nostdinc++"
 
@@ -38,8 +18,7 @@ common_bare_env = Environment(CXX=os.environ.get("CXX", "clang++"),
                               OBJSUFFIX=".${ARCH_NAME}.o",
                               PROGSUFFIX=".${ARCH_NAME}.elf",
                               ASFLAGS="-O5",
-                              CPPPATH=["#$ARCH_NAME/include", "#common/include", "#include", "#capstone/include"],
-                              CPPDEFINES=capstone_defines,
+                              CPPPATH=["#$ARCH_NAME/include", "#common/include", "#include"],
                               LINKFLAGS="-nostdlib -g -Xlinker -n -Xlinker -T -Xlinker")
 
 if "BARESIFTER_VERSION" in os.environ:
@@ -69,7 +48,6 @@ for env in [bare64_env, bare32_env]:
                     for directory in source_directories
                     for extension in ["c", "cpp", "asm"]
                     for files in env.Glob("{}/*.{}".format(directory, extension)) ]
-    source_files += capstone_src
 
     bins.append(env.Program(target="baresifter", source = ["$ARCH_NAME/standalone.lds"] + source_files))
 
