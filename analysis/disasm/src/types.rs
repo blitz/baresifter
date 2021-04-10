@@ -71,6 +71,11 @@ impl Instruction {
     pub fn bytes(&self) -> &[u8] {
         &self.bytes[..self.len()]
     }
+
+    /// Return the whole backing store including trailing null bytes.
+    pub fn all_bytes(&self) -> &[u8; 15] {
+        &self.bytes
+    }
 }
 
 #[cfg(test)]
