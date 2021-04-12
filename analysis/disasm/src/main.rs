@@ -1,12 +1,12 @@
-use anyhow::{Context, Result};
+use anyhow::Result;
 use iced_x86;
 use std::io::{self, BufRead};
 use std::str::FromStr;
 
+mod instruction;
 mod parser;
-mod types;
 
-use types::Instruction;
+use instruction::Instruction;
 
 fn iced_decode(instr: &Instruction) -> iced_x86::Instruction {
     iced_x86::Decoder::with_ip(64, instr.all_bytes(), 0, 0).decode()

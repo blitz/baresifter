@@ -8,7 +8,7 @@ use nom::{
 };
 use std::str::FromStr;
 
-use crate::types::{Instruction, InvalidInstruction};
+use crate::instruction::{Instruction, InvalidInstruction};
 
 fn from_hex(input: &str) -> Result<u8, std::num::ParseIntError> {
     u8::from_str_radix(input, 16)
