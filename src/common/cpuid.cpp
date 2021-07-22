@@ -2,13 +2,13 @@
 
 #include "cpuid.hpp"
 
-cpuid_result get_cpuid(uint32_t leaf)
+cpuid_result get_cpuid(uint32_t leaf, uint32_t subleaf)
 {
   cpuid_result res;
   asm ("cpuid"
        : "=a" (res.eax), "=b" (res.ebx),
          "=d" (res.edx), "=c" (res.ecx)
-       : "a" (leaf), "c" (0));
+       : "a" (leaf), "c" (subleaf));
   return res;
 }
 

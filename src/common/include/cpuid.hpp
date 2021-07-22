@@ -14,6 +14,6 @@ struct cpu_signature {
   char vendor[3*4 + 1];
 };
 
-cpuid_result get_cpuid(uint32_t leaf);
+cpuid_result get_cpuid(uint32_t leaf, uint32_t subleaf = 0);
 cpu_signature get_cpu_signature();
 bool running_virtualized();
