@@ -28,6 +28,14 @@ enum : mword_t {
   CR4_SMEP = 1 << 20,
 };
 
+enum : mword_t {
+  EXC_PF_ERR_P = 1 << 0,
+  EXC_PF_ERR_W = 1 << 1,
+  EXC_PF_ERR_U = 1 << 2,
+  EXC_PF_ERR_RSVD = 1 << 3,
+  EXC_PF_ERR_I = 1 << 4,
+};
+
 // Task State Segment
 struct tss {
 #ifdef __x86_64__

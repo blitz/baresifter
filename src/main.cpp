@@ -24,15 +24,20 @@ static execution_attempt find_instruction_length(instruction_bytes const &instr)
     ef = execute_user(guest_ip);
 
     // The instruction hasn't been completely fetched, if we get an instruction
-    // fetch page fault.
+    // fetch page fault from userspace.
     //
     // The check for RIP is necessary, because otherwise we cannot correctly
     // guess the length of XBEGIN with an abort address following the XBEGIN
     // instruction.
-    bool incomplete_instruction_fetch = (ef.vector == 14 and
-                                         (ef.error_code & 0b10101 /* user space instruction fetch */) == 0b10100 and
-                                         get_cr2() == get_user_page() + page_size and
-                                         ef.ip == guest_ip);
+
+    mword_t const pt_exc_mask = EXC_PF_ERR_P | EXC_PF_ERR_U | EXC_PF_ERR_I;
+    mword_t const pt_exc_expect = EXC_PF_ERR_U | EXC_PF_ERR_I;
+
+    bool const incomplete_instruction_fetch =
+      ef.vector == 14 and
+      (ef.error_code & pt_exc_mask) == pt_exc_expect and
+      get_cr2() == get_user_page() + page_size and
+      ef.ip == guest_ip;
 
     if (not incomplete_instruction_fetch)
       break;
