@@ -9,6 +9,7 @@
 #include "search.hpp"
 #include "util.hpp"
 #include "x86.hpp"
+#include "cpu_features.hpp"
 
 static execution_attempt find_instruction_length(instruction_bytes const &instr)
 {
@@ -162,15 +163,13 @@ static options parse_and_destroy_cmdline(char *cmdline)
   return res;
 }
 
-void start(char *cmdline)
+void start(cpu_features const *features, char *cmdline)
 {
   print_logo();
 
   auto options = parse_and_destroy_cmdline(cmdline);
   const auto sig = get_cpu_signature();
   format(">>> CPU is ", sig.vendor, " ", hex(sig.signature, 8, false), ".\n");
-
-  setup_arch();
 
   format(">>> Executing self test.\n");
   self_test_instruction_length();

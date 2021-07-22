@@ -5,6 +5,7 @@
 #include "selectors.hpp"
 #include "x86.hpp"
 #include "util.hpp"
+#include "cpu_features.hpp"
 
 extern "C" void irq_entry(exception_frame &);
 
@@ -118,9 +119,12 @@ exception_frame execute_user(uintptr_t rip)
   return user;
 }
 
-void setup_arch()
+extern "C" cpu_features const *setup_arch()
 {
   setup_idt();
   setup_paging();
   try_setup_avx();
+
+  static cpu_features features;
+  return &features;
 }

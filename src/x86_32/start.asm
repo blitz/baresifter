@@ -6,7 +6,7 @@
 bits 32
 
 global _start, kern_stack
-extern start, wait_forever, execute_constructors
+extern start, wait_forever, execute_constructors, setup_arch
 
 section .bss
   kern_stack resb 4 * PAGE_SIZE
@@ -49,6 +49,11 @@ no_cmdline:
 
   lea esp, [kern_stack_end]
   call execute_constructors
-  lea eax, [cmdline]
-  push wait_forever
-  jmp start
+
+  call setup_arch
+
+  ; We got the cpu_features in EAX. This becomes the first parameter to start.
+  lea edx, [cmdline]
+
+  call start
+  call wait_forever

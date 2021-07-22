@@ -3,6 +3,7 @@
 #include "selectors.hpp"
 #include "util.hpp"
 #include "x86.hpp"
+#include "cpu_features.hpp"
 
 extern "C" void irq_entry(exception_frame &);
 
@@ -195,9 +196,12 @@ static void setup_idt()
   lidt(idt);
 }
 
-void setup_arch()
+extern "C" cpu_features const *setup_arch()
 {
   setup_paging();
   setup_gdt();
   setup_idt();
+
+  static cpu_features features;
+  return &features;
 }

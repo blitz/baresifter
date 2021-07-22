@@ -27,7 +27,7 @@
 
 bits 32
 
-extern start, _image_start, wait_forever, execute_constructors
+extern start, _image_start, wait_forever, execute_constructors, setup_arch
 extern boot_pml4, boot_pdpt, boot_pd
 global _start, kern_stack
 
@@ -143,6 +143,11 @@ _start_long:
 
   lea rsp, [kern_stack_end]
   call execute_constructors
-  lea edi, [cmdline]
-  push wait_forever
-  jmp start
+
+  call setup_arch
+
+  mov rdi, rax
+  lea rsi, [cmdline]
+
+  call start
+  call wait_forever
