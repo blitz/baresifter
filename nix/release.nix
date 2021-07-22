@@ -11,7 +11,7 @@ let
     } ''
     mkdir -p $out/bin
 
-    install -m 0755 ${../run.sh} $out/bin/baresifter-run
+    install -m 0755 ${../tools/baresifter-run} $out/bin/baresifter-run
     patchShebangs $out/bin/baresifter-run
 
     wrapProgram $out/bin/baresifter-run \
