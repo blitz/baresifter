@@ -4,6 +4,8 @@
 #include "util.hpp"
 #include "x86.hpp"
 #include "cpu_features.hpp"
+#include "msr.hpp"
+#include "cpuid.hpp"
 
 extern "C" void irq_entry(exception_frame &);
 
@@ -204,9 +206,11 @@ extern "C" cpu_features const *setup_arch()
 
   static cpu_features features;
 
-  // 32-bit x86 may not have NX. We should try to detect and turn it
-  // on, but for now, we just ignore that it's there.
-  features.has_nx = false;
+  // 32-bit x86 may not have NX.
+  if (has_nx()) {
+    wrmsr(IA32_EFER, rdmsr(IA32_EFER) | IA32_EFER_NXE);
+    features.has_nx = true;
+  }
 
   return &features;
 }

@@ -31,3 +31,19 @@ bool running_virtualized()
 {
   return get_cpuid(1).ecx & (1U << 31);
 }
+
+uint32_t get_cpuid_max_std_level()
+{
+  return get_cpuid(0).eax;
+}
+
+uint32_t get_cpuid_max_ext_level()
+{
+  return get_cpuid(0x80000000).eax;
+}
+
+bool has_nx()
+{
+  return get_cpuid_max_ext_level() >= 0x80000001
+    and (get_cpuid(0x80000001).edx & (1 << 20));
+}
