@@ -33,8 +33,8 @@ void setup_idt()
 
   for (size_t i = 0; i < array_size(idt); i++) {
     idt[i] = idt_desc::interrupt_gate(ring0_code_selector,
-                                      reinterpret_cast<uint64_t>(irq_entry_start + i*entry_fn_size),
-                                      0, 0);
+				      reinterpret_cast<uint64_t>(irq_entry_start + i*entry_fn_size),
+				      0, 0);
   }
 
   // Load a new GDT that also includes a task gate.
@@ -53,7 +53,7 @@ void setup_idt()
 static void print_exception(exception_frame const &ef)
 {
   format("!!! exception ", ef.vector, " (", hex(ef.error_code), ") at ",
-         hex(ef.cs), ":", hex(ef.ip), "\n");
+	 hex(ef.cs), ":", hex(ef.ip), "\n");
   format("!!! CR2 ", hex(get_cr2()), "\n");
   format("!!! RDI ", hex(ef.rdi), "\n");
   format("!!! RSI ", hex(ef.rsi), "\n");
@@ -71,8 +71,8 @@ void irq_entry(exception_frame &ef)
     }
 
     asm ("mov %0, %%rsp\n"
-         "jmp *%1\n"
-         :: "r" (tss.rsp[0]), "r" (ret) : "memory");
+	 "jmp *%1\n"
+	 :: "r" (tss.rsp[0]), "r" (ret) : "memory");
     __builtin_unreachable();
   }
 
@@ -108,13 +108,13 @@ exception_frame execute_user(uintptr_t rip)
        "1:\n"
        "mov %[rbp_save], %%rbp\n"
        : [ring0_rsp] "=m" (tss.rsp[0]), [cont] "=m" (ring0_continuation),
-         [user] "+m" (user), [rbp_save] "=m" (clobbered_rbp)
+	 [user] "+m" (user), [rbp_save] "=m" (clobbered_rbp)
        :
        // Everything except RBP is clobbered, because we come back via irq_entry
        // after basically executing random bytes.
        : "rax", "rcx", "rdx", "rbx", "rsi", "rdi",
-         "r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15",
-         "memory");
+	 "r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15",
+	 "memory");
 
   return user;
 }
