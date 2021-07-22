@@ -41,7 +41,7 @@ char *get_user_page_backing();
 struct cpu_features;
 
 // The entry point that is called by the assembly bootstrap code.
-extern "C" void start(cpu_features const *features, char *cmdline);
+extern "C" void start(cpu_features const &features, char *cmdline);
 
 // Try to execute a single userspace instruction and return the exception that
 // resulted.

@@ -126,5 +126,9 @@ extern "C" cpu_features const *setup_arch()
   try_setup_avx();
 
   static cpu_features features;
+
+  // 64-bit x86 always has support for NX.
+  features.has_nx = true;
+
   return &features;
 }

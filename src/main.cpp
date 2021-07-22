@@ -11,7 +11,8 @@
 #include "x86.hpp"
 #include "cpu_features.hpp"
 
-static execution_attempt find_instruction_length(instruction_bytes const &instr)
+static execution_attempt find_instruction_length(cpu_features const &features,
+						 instruction_bytes const &instr)
 {
   exception_frame ef;
   size_t i;
@@ -31,8 +32,9 @@ static execution_attempt find_instruction_length(instruction_bytes const &instr)
     // guess the length of XBEGIN with an abort address following the XBEGIN
     // instruction.
 
-    mword_t const pt_exc_mask = EXC_PF_ERR_P | EXC_PF_ERR_U | EXC_PF_ERR_I;
-    mword_t const pt_exc_expect = EXC_PF_ERR_U | EXC_PF_ERR_I;
+    mword_t const pt_exc_instr = features.has_nx ? EXC_PF_ERR_I : 0;
+    mword_t const pt_exc_mask = EXC_PF_ERR_P | EXC_PF_ERR_U | pt_exc_instr;
+    mword_t const pt_exc_expect = EXC_PF_ERR_U | pt_exc_instr;
 
     bool const incomplete_instruction_fetch =
       ef.vector == 14 and
@@ -47,7 +49,7 @@ static execution_attempt find_instruction_length(instruction_bytes const &instr)
   return { (uint8_t)i, (uint8_t)ef.vector };
 }
 
-static void self_test_instruction_length()
+static void self_test_instruction_length(cpu_features const &features)
 {
   static const struct {
     size_t length;
@@ -86,7 +88,7 @@ static void self_test_instruction_length()
   bool success = true;
 
   for (auto const &test : tests) {
-    auto attempt = find_instruction_length(test.instr);
+    auto attempt = find_instruction_length(features, test.instr);
     if (attempt.length != test.length) {
       success = false;
     }
@@ -163,7 +165,7 @@ static options parse_and_destroy_cmdline(char *cmdline)
   return res;
 }
 
-void start(cpu_features const *features, char *cmdline)
+void start(cpu_features const &features, char *cmdline)
 {
   print_logo();
 
@@ -172,7 +174,7 @@ void start(cpu_features const *features, char *cmdline)
   format(">>> CPU is ", sig.vendor, " ", hex(sig.signature, 8, false), ".\n");
 
   format(">>> Executing self test.\n");
-  self_test_instruction_length();
+  self_test_instruction_length(features);
 
   format(">>> Probing instruction space with up to ", options.prefixes,
          " legacy prefix", options.prefixes == 1 ? "" : "es",
@@ -185,7 +187,7 @@ void start(cpu_features const *features, char *cmdline)
 
   do {
     auto const &candidate = search.get_candidate();
-    auto attempt = find_instruction_length(candidate);
+    auto attempt = find_instruction_length(features, candidate);
 
     search.clear_after(attempt.length);
 

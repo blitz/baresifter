@@ -203,5 +203,10 @@ extern "C" cpu_features const *setup_arch()
   setup_idt();
 
   static cpu_features features;
+
+  // 32-bit x86 may not have NX. We should try to detect and turn it
+  // on, but for now, we just ignore that it's there.
+  features.has_nx = false;
+
   return &features;
 }
