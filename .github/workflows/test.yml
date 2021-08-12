@@ -9,7 +9,9 @@ jobs:
     - uses: actions/checkout@v2.3.4
       with:
         submodules: recursive
-    - uses: cachix/install-nix-action@v12
-    - run: |
-        nix-build ./nix/ci.nix -A test-x86_64-tcg
-        nix-build ./nix/ci.nix -A test-x86_32-tcg
+    - uses: cachix/install-nix-action@v13
+    - uses: cachix/cachix-action@v10
+      with:
+        name: blitz
+    - run: nix-build ./nix/ci.nix
+    - run: nix-shell --run "echo OK"
