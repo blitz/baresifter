@@ -18,6 +18,12 @@ let
       --prefix PATH : ${pkgs.lib.makeBinPath (with pkgs; [ qemu file binutils-unwrapped ])}
   '';
 
+  naersk = pkgs.callPackage sources.naersk {};
+
+  analyze = naersk.buildPackage {
+    src = ../analyze;
+  };
+
   testcase = { mode, binary }: pkgs.runCommandNoCC "test-qemu-tcg"
     {
       nativeBuildInputs = [ baresifter-run ];
@@ -30,7 +36,7 @@ let
   '';
 in
 {
-  inherit baresifter baresifter-run;
+  inherit baresifter baresifter-run analyze;
 
   test-x86_64-tcg = testcase { mode = "tcg"; binary = "baresifter.x86_64.elf"; };
   test-x86_32-tcg = testcase { mode = "tcg"; binary = "baresifter.x86_32.elf"; };
