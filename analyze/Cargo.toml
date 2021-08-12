@@ -1,5 +1,5 @@
 [package]
-name = "disasm"
+name = "baresifter-analyze"
 version = "0.1.0"
 authors = ["Julian Stecklina <js@alien8.de>"]
 edition = "2018"
