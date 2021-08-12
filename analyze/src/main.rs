@@ -13,6 +13,8 @@ fn iced_decode(instr: &Instruction) -> iced_x86::Instruction {
 }
 
 fn main() -> Result<()> {
+    eprintln!("Waiting for input on stdin...");
+
     let stdin = io::stdin();
 
     let instrs = stdin
