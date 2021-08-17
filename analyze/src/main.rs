@@ -1,6 +1,5 @@
 use anyhow::{anyhow, Context, Result};
 use clap::{crate_version, Clap};
-use iced_x86;
 use std::{
     fs::File,
     io::{BufRead, BufReader},
@@ -12,7 +11,7 @@ mod instruction;
 mod parser;
 mod utils;
 
-use instruction::Instruction;
+use instruction::{Instruction, InterpolateAllIterator};
 use utils::slice_as_hex_string;
 
 #[derive(Clap, Debug)]
@@ -46,14 +45,15 @@ fn main() -> Result<()> {
         .with_context(|| format!("Failed to open input file: {}", opts.input_file.display()))?;
     let file = BufReader::new(file);
 
-    let instrs = file
-        .lines()
-        .filter_map(|l| -> Option<Instruction> { Instruction::from_str(&l.ok()?).ok() })
-        .map(|i| {
-            let iced_instr = decoder(&i);
-            (i, iced_instr)
-        })
-        .filter(|(i, iced_instr)| i.exception() != 0x06 && i.len() != iced_instr.len());
+    let instrs = InterpolateAllIterator::new(
+        file.lines()
+            .filter_map(|l| -> Option<Instruction> { Instruction::from_str(&l.ok()?).ok() }),
+    )
+    .map(|i| {
+        let iced_instr = decoder(&i);
+        (i, iced_instr)
+    })
+    .filter(|(i, iced_instr)| i.exception() != 0x06 && i.len() != iced_instr.len());
 
     for (bare_instr, iced_instr) in instrs {
         println!(

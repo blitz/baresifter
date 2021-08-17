@@ -1,15 +1,13 @@
 //! This module contains the types to represent baresifter output.
 
-use std::convert::TryInto;
-use std::error::Error;
-use std::fmt;
+use std::{convert::TryInto, error::Error, fmt, iter::Peekable};
 
 /// A representation of a single instruction as it is outut by
 /// Barsifter.
 ///
 /// The internal representation is geared for small size and lack of
 /// heap allocations.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Instruction {
     /// This is actually two fields: the exception (top 4 bits) and
     /// the length of the instruction bytes (lower 4 bits).
@@ -78,6 +76,7 @@ impl Instruction {
     }
 
     /// Return the instruction as a byte slice.
+    #[allow(dead_code)]
     pub fn bytes(&self) -> &[u8] {
         &self.bytes[..self.len()]
     }
@@ -106,8 +105,9 @@ impl Instruction {
     /// The immutable version of [increment_mut]. This returns a new
     /// instruction and the wrapping indicator instead of modifying an
     /// instruction.
+    #[allow(dead_code)]
     pub fn increment(&self, pos: usize) -> (Instruction, ByteWrapped) {
-        let mut new = self.clone();
+        let mut new = *self;
         let wrapped = new.increment_mut(pos);
 
         (new, wrapped)
@@ -116,7 +116,7 @@ impl Instruction {
 
 /// An iterator that interpolates missing lines from Baresifter output.
 #[derive(Debug)]
-struct InterpolateIterator {
+struct InterpolateOneIterator {
     /// The current instruction. This is the instruction that is
     /// returned from [next].
     current: Instruction,
@@ -130,24 +130,32 @@ struct InterpolateIterator {
     pos: usize,
 }
 
-impl InterpolateIterator {
+impl InterpolateOneIterator {
     /// Construct a new instruction iterator that generates all
     /// instructions between these two.
     ///
     /// The target instruction will not be emitted.
-    fn new(from: &Instruction, to: &Instruction) -> InterpolateIterator {
+    pub fn new(from: Instruction, to: Instruction) -> InterpolateOneIterator {
         assert!(from.len() > 0);
 
-        InterpolateIterator {
-            current: from.clone(),
-            target: to.clone(),
+        InterpolateOneIterator {
+            current: from,
+            target: to,
 
             pos: from.len() - 1,
         }
     }
+
+    /// A convenience constructor for when you don't want to
+    /// interpolate, but return exactly the single instruction.
+    pub fn new_single(from: Instruction) -> InterpolateOneIterator {
+        let new_end = from.increment(from.len() - 1).0;
+
+        Self::new(from, new_end)
+    }
 }
 
-impl Iterator for InterpolateIterator {
+impl Iterator for InterpolateOneIterator {
     type Item = Instruction;
 
     /// Return the next instruction in the sequence.
@@ -159,7 +167,7 @@ impl Iterator for InterpolateIterator {
         if self.current.all_bytes() == self.target.all_bytes() {
             None
         } else {
-            let ret = self.current.clone();
+            let ret = self.current;
 
             loop {
                 if let ByteWrapped::Wrap = self.current.increment_mut(self.pos) {
@@ -175,6 +183,72 @@ impl Iterator for InterpolateIterator {
             }
 
             Some(ret)
+        }
+    }
+}
+
+pub struct InterpolateAllIterator<IT>
+where
+    IT: Iterator<Item = Instruction>,
+{
+    src_iter: Peekable<IT>,
+    interpolate_one_iter: Option<InterpolateOneIterator>,
+}
+
+impl<IT> InterpolateAllIterator<IT>
+where
+    IT: Iterator<Item = Instruction>,
+{
+    /// Take an iterator of instructions and generate a new iterator
+    /// that interpolates between all instructions.
+    pub fn new(src_iter: IT) -> Self {
+        Self {
+            interpolate_one_iter: None,
+            src_iter: src_iter.peekable(),
+        }
+    }
+
+    fn refill(&mut self) -> bool {
+        match self.src_iter.next() {
+            Some(next) => {
+                self.interpolate_one_iter = Some(if let Some(peeked) = self.src_iter.peek() {
+                    InterpolateOneIterator::new(next, *peeked)
+                } else {
+                    InterpolateOneIterator::new_single(next)
+                });
+
+                true
+            }
+
+            None => false,
+        }
+    }
+
+    fn refill_and_next(&mut self) -> Option<Instruction> {
+        if self.refill() {
+            self.next()
+        } else {
+            None
+        }
+    }
+}
+
+impl<IT> Iterator for InterpolateAllIterator<IT>
+where
+    IT: Iterator<Item = Instruction>,
+{
+    type Item = Instruction;
+
+    fn next(&mut self) -> Option<Instruction> {
+        match &mut self.interpolate_one_iter {
+            Some(it) => {
+                if let Some(instr) = it.next() {
+                    Some(instr)
+                } else {
+                    self.refill_and_next()
+                }
+            }
+            None => self.refill_and_next(),
         }
     }
 }
@@ -216,7 +290,7 @@ mod tests {
         let instr_end = Instruction::new(0xe, &[0x0f, 0x00, 0x00])?;
 
         let inbetween: Vec<Instruction> =
-            InterpolateIterator::new(&instr_start, &instr_end).collect();
+            InterpolateOneIterator::new(instr_start, instr_end).collect();
 
         assert_eq!(
             inbetween,
@@ -224,6 +298,32 @@ mod tests {
                 Instruction::new(0xe, &[0x0d, 0xff, 0xfe])?,
                 Instruction::new(0xe, &[0x0d, 0xff, 0xff])?,
                 Instruction::new(0xe, &[0x0e, 0x00, 0x00])?,
+            ]
+        );
+
+        Ok(())
+    }
+
+    fn interpolate_instructions(instrs: &[Instruction]) -> Vec<Instruction> {
+        InterpolateAllIterator::new(instrs.iter().copied()).collect()
+    }
+
+    #[test]
+    fn interpolate_all_instructions_works() -> Result<(), InvalidInstruction> {
+        let instr0 = Instruction::new(0xe, &[0x0d, 0xff, 0xfe])?;
+        let instr1 = Instruction::new(0xe, &[0x0f, 0x00, 0x00])?;
+
+        assert_eq!(interpolate_instructions(&[]), []);
+
+        assert_eq!(interpolate_instructions(&[instr0]), [instr0]);
+
+        assert_eq!(
+            interpolate_instructions(&[instr0, instr1]),
+            [
+                instr0,
+                Instruction::new(0xe, &[0x0d, 0xff, 0xff])?,
+                Instruction::new(0xe, &[0x0e, 0x00, 0x00])?,
+                instr1
             ]
         );
 
