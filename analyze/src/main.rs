@@ -37,7 +37,7 @@ fn get_decoder(bits: u8) -> Result<Box<dyn Fn(&Instruction) -> iced_x86::Instruc
 }
 
 /// Convert a slice of bytes to a space separated hexadecimal string.
-fn slice_as_hex_string(slice: &[u8; 15]) -> String {
+fn slice_as_hex_string(slice: &[u8]) -> String {
     let mut out = String::new();
 
     // Each byte gets 2 hex digits and a space, minus one space for
@@ -77,7 +77,7 @@ fn main() -> Result<()> {
     for (bare_instr, iced_instr) in instrs {
         println!(
             "{} | {:02} ≠ {:02} {}",
-            slice_as_hex_string(&bare_instr.all_bytes()),
+            slice_as_hex_string(bare_instr.all_bytes()),
             bare_instr.len(),
             iced_instr.len(),
             iced_instr
