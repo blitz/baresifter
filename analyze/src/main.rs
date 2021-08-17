@@ -10,8 +10,10 @@ use std::{
 
 mod instruction;
 mod parser;
+mod utils;
 
 use instruction::Instruction;
+use utils::slice_as_hex_string;
 
 #[derive(Clap, Debug)]
 #[clap(version = crate_version!(), author = "Julian Stecklina <js@alien8.de>")]
@@ -34,27 +36,6 @@ fn get_decoder(bits: u8) -> Result<Box<dyn Fn(&Instruction) -> iced_x86::Instruc
             bits
         )),
     }
-}
-
-/// Convert a slice of bytes to a space separated hexadecimal string.
-fn slice_as_hex_string(slice: &[u8]) -> String {
-    let mut out = String::new();
-
-    // Each byte gets 2 hex digits and a space, minus one space for
-    // the end.
-    out.reserve(slice.len() * 3 - 1);
-
-    slice
-        .iter()
-        .map(|v| format!("{:02x}", v))
-        .fold(String::new(), |mut acc, hex| {
-            if !acc.is_empty() {
-                acc.push(' ');
-            }
-
-            acc.push_str(&hex);
-            acc
-        })
 }
 
 fn main() -> Result<()> {
