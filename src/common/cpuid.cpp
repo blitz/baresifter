@@ -47,3 +47,9 @@ bool has_nx()
   return get_cpuid_max_ext_level() >= 0x80000001
     and (get_cpuid(0x80000001).edx & (1 << 20));
 }
+
+bool has_smep()
+{
+    return get_cpuid_max_std_level() >= 7
+        and (get_cpuid(0x7).ebx & (1 << 7));
+}
