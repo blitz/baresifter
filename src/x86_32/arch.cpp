@@ -58,7 +58,7 @@ static void setup_paging()
   //For now just store it there if required (assuming enough memory is installed)!
   if (page_tables_start & 0xFFF) //Make sure to start on the next 4KB boundary if needed!
   {
-      page_tables_start = (page_table_start + 0xFFF) & ~0xFFF; //4KB boundary of next page!
+      page_tables_start = (page_tables_start + 0xFFF) & ~0xFFF; //4KB boundary of next page!
   }
 
   assert(is_aligned(istart, 22), "Image needs to start on large page boundary");
@@ -84,18 +84,17 @@ static void setup_paging()
   // Map additional page tables, if required (non-PSE systems).
   if (!pse_supported) //4KB page tables are required?
   {
-      tablepos = page_table_start; //Generating pagetables here, requiring up to 4MB!
-      for (uintptr_t c = istart; c <= iend;) //Process our range again for the page tables!
+      tablepos = page_tables_start; //Generating pagetables here, requiring up to 4MB!
+      for (uintptr_t c = istart; c <= iend; c += (1U << 22)) //Process our range again for the page tables!
       {
           uintptr_t m = c; //Where to start mapping 4MB to!
-          uint32_t* t = tablepos; //Backing page table in physical memory!
+          uint32_t* t = reinterpret_cast<uint32_t*>tablepos; //Backing page table in physical memory!
           for (uintptr_t d = 0; d <= 1024;) //Map one 4MB page to linear memory
           {
-              t[d] = m | PTE_P | PTE_W; //4KB PTE
+              t[d++] = m | PTE_P | PTE_W; //4KB PTE
               m += 4096; //Mapped 4KB of memory!
           }
           tablepos += 4096; //Next page table to fill!
-          c += (1U << 22); //Mapped 4MB of memory
       }
   }
 
