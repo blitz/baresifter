@@ -12,7 +12,7 @@ bool cpuid_supported()
         "cli\n\t" //Block interrupts to be safe, as we're modifying the stack alignment, making this a critical section
         "push %%ebp\n\t" //Save original stack base pointer
         "mov %%esp,%%ebp\n\t" //Save original stack alignment
-        "and -4,%%esp\n\t" //align stack
+        "and $-4,%%esp\n\t" //align stack
         "pushfl\n\t" //Load...
         "pop %%eax\n\t" //... old EFLAGS
         "mov %%eax,%%ebx\n\t" //Copy of it for the result check
