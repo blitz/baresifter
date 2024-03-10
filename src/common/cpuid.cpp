@@ -15,14 +15,14 @@ bool cpuid_supported()
         "and -4,%%esp\n\t" //align stack
         "pushfl\n\t" //Load...
         "pop %%eax\n\t" //... old EFLAGS
-        "mov %%ebx,%%eax\n\t" //Copy of it for the result check
-        "xor $200000,%%eax\n\t" //Flip CPUID bit now
+        "mov %%eax,%%ebx\n\t" //Copy of it for the result check
+        "xor $0x200000,%%eax\n\t" //Flip CPUID bit now
         "push %%eax\n\t"
         "popfl\n\t" //Store changed bit into flags
         "pushfl\n\t" //New eflags back on the stack
         "pop %%eax\n\t" //Get if it changed
-        "mov %%eax, %0\n\t" //Original eflags result
-        "mov %%ebx, %1\n\t" //Flipped eflags result
+        "mov %%eax, %0\n\t" //Flipped eflags result
+        "mov %%ebx, %1\n\t" //Original eflags result
         "mov %%ebp,%%esp\n\t" //Restore original stack alignment
         "pop %%ebp\n\t" //Restore stack base pointer
         "popfl" //Restore original interrupt state
