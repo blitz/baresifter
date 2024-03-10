@@ -88,7 +88,7 @@ static void setup_paging()
       for (uintptr_t c = istart; c <= iend; c += (1U << 22)) //Process our range again for the page tables!
       {
           uintptr_t m = c; //Where to start mapping 4MB to!
-          uint32_t* t = reinterpret_cast<uint32_t*>tablepos; //Backing page table in physical memory!
+          uint32_t* t = reinterpret_cast<uint32_t*>(tablepos); //Backing page table in physical memory!
           for (uintptr_t d = 0; d <= 1024;) //Map one 4MB page to linear memory
           {
               t[d++] = m | PTE_P | PTE_W; //4KB PTE
