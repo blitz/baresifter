@@ -26,9 +26,7 @@ bool cpuid_supported()
         "mov %%ebp,%%esp\n\t" //Restore original stack alignment
         "pop %%ebp\n\t" //Restore stack base pointer
         "popfd" //Restore original interrupt state
-        : "=a" (res1), "=b" (res2)
-        :
-        : "=a", "=b");
+        : "=a" (res1), "=b" (res2));
     return (((res1 ^ res2) & 0x200000)!=0); //Has the CPUID bit changed and is supported?
     #else
     return true; //Always assumed supported!
