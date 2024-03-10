@@ -8,24 +8,24 @@ bool cpuid_supported()
     //We need to check for the existence of CPUID on 32-bit platforms!
     unsigned int res1,res2;
     asm(
-        "pushfd\n\t" //Save original interrupt state
+        "pushfl\n\t" //Save original interrupt state
         "cli\n\t" //Block interrupts to be safe, as we're modifying the stack alignment, making this a critical section
         "push %%ebp\n\t" //Save original stack base pointer
         "mov %%esp,%%ebp\n\t" //Save original stack alignment
         "and -4,%%esp\n\t" //align stack
-        "pushfd\n\t" //Load...
+        "pushfl\n\t" //Load...
         "pop %%eax\n\t" //... old EFLAGS
         "mov %%ebx,%%eax\n\t" //Copy of it for the result check
-        "xor %%eax,$200000\n\t" //Flip CPUID bit now
+        "xor $200000,%%eax\n\t" //Flip CPUID bit now
         "push %%eax\n\t"
-        "popfd\n\t" //Store changed bit into flags
-        "pushfd\n\t" //New eflags back on the stack
+        "popfl\n\t" //Store changed bit into flags
+        "pushfl\n\t" //New eflags back on the stack
         "pop %%eax\n\t" //Get if it changed
         "mov %%eax, %0\n\t" //Original eflags result
         "mov %%ebx, %1\n\t" //Flipped eflags result
         "mov %%ebp,%%esp\n\t" //Restore original stack alignment
         "pop %%ebp\n\t" //Restore stack base pointer
-        "popfd" //Restore original interrupt state
+        "popfl" //Restore original interrupt state
         : "=a" (res1), "=b" (res2));
     return (((res1 ^ res2) & 0x200000)!=0); //Has the CPUID bit changed and is supported?
     #else
