@@ -32,3 +32,6 @@ bool has_smep();
 
 // Returns true, if the CPU reports being able to use PSE.
 bool has_pse();
+
+// Returns true, if the CPU reports being able to use the WP bit in CR0.
+bool has_wp();

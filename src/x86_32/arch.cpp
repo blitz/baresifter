@@ -51,7 +51,8 @@ static bool is_aligned(uint64_t v, int order)
 
 static void setup_paging()
 {
-  int pse_supported = has_pse(); //pse is supported on the CPU?
+  bool pse_supported = has_pse(); //pse is supported on the CPU?
+  bool wp_supported = has_wp(); //wp is supported on the CPU?
   uintptr_t istart = reinterpret_cast<uintptr_t>(_image_start);
   uintptr_t iend = reinterpret_cast<uintptr_t>(_image_end);
   uintptr_t page_tables_start = iend+(1U<<22); //Point to the end of the image to store our page tables!
@@ -110,7 +111,7 @@ static void setup_paging()
       set_cr4(get_cr4() | (pse_supported ? CR4_PSE : 0) | (has_smep() ? CR4_SMEP : 0));
   }
   set_cr3((uintptr_t)pdt);
-  set_cr0(get_cr0() | CR0_PG | CR0_WP);
+  set_cr0(get_cr0() | CR0_PG | (wp_supported?CR0_WP:0));
 }
 
 static void setup_gdt()
