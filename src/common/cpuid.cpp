@@ -8,24 +8,24 @@ bool cpuid_supported()
     //We need to check for the existence of CPUID on 32-bit platforms!
     unsigned int res1,res2;
     asm(
-        "pushfd\n\t", //Save original interrupt state
-        "cli\n\t", //Block interrupts to be safe, as we're modifying the stack alignment, making this a critical section
-        "push %%ebp\n\t", //Save original stack base pointer
-        "mov %%esp,%%ebp\n\t", //Save original stack alignment
-        "and -4,%%esp\n\t", //align stack
-        "pushfd\n\t", //Load...
-        "pop %%eax\n\t", //... old EFLAGS
+        "pushfd\n\t" //Save original interrupt state
+        "cli\n\t" //Block interrupts to be safe, as we're modifying the stack alignment, making this a critical section
+        "push %%ebp\n\t" //Save original stack base pointer
+        "mov %%esp,%%ebp\n\t" //Save original stack alignment
+        "and -4,%%esp\n\t" //align stack
+        "pushfd\n\t" //Load...
+        "pop %%eax\n\t" //... old EFLAGS
         "mov %%ebx,%%eax\n\t" //Copy of it for the result check
-        "xor %%eax,$200000\n\t", //Flip CPUID bit now
-        "push %%eax\n\t",
-        "popfd\n\t", //Store changed bit into flags
-        "pushfd\n\t", //New eflags back on the stack
-        "pop %%eax\n\t", //Get if it changed
-        "mov %%eax, %0\n\t", //Original eflags result
-        "mov %%ebx, %1\n\t", //Flipped eflags result
-        "mov %%ebp,%%esp\n\t", //Restore original stack alignment
-        "pop %%ebp\n\t", //Restore stack base pointer
-        "popfd", //Restore original interrupt state
+        "xor %%eax,$200000\n\t" //Flip CPUID bit now
+        "push %%eax\n\t"
+        "popfd\n\t" //Store changed bit into flags
+        "pushfd\n\t" //New eflags back on the stack
+        "pop %%eax\n\t" //Get if it changed
+        "mov %%eax, %0\n\t" //Original eflags result
+        "mov %%ebx, %1\n\t" //Flipped eflags result
+        "mov %%ebp,%%esp\n\t" //Restore original stack alignment
+        "pop %%ebp\n\t" //Restore stack base pointer
+        "popfd" //Restore original interrupt state
         : "=a" (res1), "=b" (res2)
         :
         : "=a", "=b");
@@ -40,7 +40,7 @@ cpuid_result get_cpuid(uint32_t leaf, uint32_t subleaf)
   cpuid_result res;
   if (!cpuid_supported()) //CPUID not supported?
   {
-      res.eax = res.ebx = reg.edx = res.ecx = 0; //Simply give empty result!
+      res.eax = res.ebx = res.edx = res.ecx = 0; //Simply give empty result!
       return res; //Give empty result!
   }
 
