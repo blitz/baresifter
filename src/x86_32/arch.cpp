@@ -51,15 +51,52 @@ static bool is_aligned(uint64_t v, int order)
 
 static void setup_paging()
 {
+  int pse_supported = has_pse(); //pse is supported on the CPU?
   uintptr_t istart = reinterpret_cast<uintptr_t>(_image_start);
   uintptr_t iend = reinterpret_cast<uintptr_t>(_image_end);
+  uintptr_t page_tables_start = iend+(1U<<22); //Point to the end of the image to store our page tables!
+  //For now just store it there if required (assuming enough memory is installed)!
+  if (page_tables_start & 0xFFF) //Make sure to start on the next 4KB boundary if needed!
+  {
+      page_tables_start = (page_table_start + 0xFFF) & ~0xFFF; //4KB boundary of next page!
+  }
 
   assert(is_aligned(istart, 22), "Image needs to start on large page boundary");
 
+  uintptr_t tablepos = page_tables_start; //For looping sub-page tables in the PDE entries!
+
   // Map our binary 1:1
   for (uintptr_t c = istart; c <= iend; c += (1U << 22)) {
-    uintptr_t idx = c >> 22;
-    pdt[idx] = c | PTE_P | PTE_W | PTE_PS;
+      uintptr_t idx;
+      uintptr_t p; //The physical location!
+      idx = c >> 22; //What index in the page directory
+      if (pse_supported) //PSE supported? Map 4MB page tables!
+      {
+          p = c | PTE_PS; //Directly mapped!
+      }
+      else //Map 4KB PDE page directories to their page tables
+      {
+          p = tablepos; //Page table position!
+          tablepos += (1 << 12); //Move in 4KB chunks!
+      }
+      pdt[idx] = PTE_P | PTE_W | p; //Map PDE to page table or page
+  }
+  // Map additional page tables, if required (non-PSE systems).
+  if (!pse_supported) //4KB page tables are required?
+  {
+      tablepos = page_table_start; //Generating pagetables here, requiring up to 4MB!
+      for (uintptr_t c = istart; c <= iend;) //Process our range again for the page tables!
+      {
+          uintptr_t m = c; //Where to start mapping 4MB to!
+          uint32_t* t = tablepos; //Backing page table in physical memory!
+          for (uintptr_t d = 0; d <= 1024;) //Map one 4MB page to linear memory
+          {
+              t[d] = m | PTE_P | PTE_W; //4KB PTE
+              m += 4096; //Mapped 4KB of memory!
+          }
+          tablepos += 4096; //Next page table to fill!
+          c += (1U << 22); //Mapped 4MB of memory
+      }
   }
 
   // Map user page
@@ -69,7 +106,10 @@ static void setup_paging()
   pdt[bit_select(32, 22, up)] = reinterpret_cast<uintptr_t>(user_pt) | PTE_U | PTE_P;
   user_pt[bit_select(22, 12, up)] = reinterpret_cast<uintptr_t>(get_user_page_backing()) | PTE_U | PTE_P;
 
-  set_cr4(get_cr4() | CR4_PSE | (has_smep()?CR4_SMEP:0));
+  if (pse_supported || has_smep()) //Enable either pse or smep and supported?
+  {
+      set_cr4(get_cr4() | (pse_supported ? CR4_PSE : 0) | (has_smep() ? CR4_SMEP : 0));
+  }
   set_cr3((uintptr_t)pdt);
   set_cr0(get_cr0() | CR0_PG | CR0_WP);
 }

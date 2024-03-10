@@ -29,3 +29,6 @@ bool has_nx();
 
 // Returns true, if the CPU reports being able to use SMEP.
 bool has_smep();
+
+// Returns true, if the CPU reports being able to use PSE.
+bool has_pse();
