@@ -36,8 +36,8 @@ static constexpr int opcode_to_prefix_group(uint8_t byte)
   case 0x40 ... 0x4F:           // REX prefixes
     group = 4;
     break;
-  }
 #endif
+  }
 
   return group;
 }
