@@ -32,7 +32,7 @@ static constexpr int opcode_to_prefix_group(uint8_t byte)
   case 0x67:                    // address size override
     group = 3;
     break;
-#ifndef __x86_64__
+#ifdef __x86_64__
   case 0x40 ... 0x4F:           // REX prefixes
     group = 4;
     break;
