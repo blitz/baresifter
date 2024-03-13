@@ -84,7 +84,7 @@ struct prefix_state {
     return false;
   }
 
-  bool search_engine::has_unused_prefixes(size_t used_prefixes_) const
+  bool has_unused_prefixes(size_t used_prefixes_) const
   {
     //Detect used_prefixes and filter them out.
       size_t b = 1;
