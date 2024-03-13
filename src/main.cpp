@@ -140,6 +140,12 @@ struct options {
 
   // After how many instructions do we stop. Zero means don't stop.
   size_t stop_after = 0;
+
+  // What prefixes to use. Zero means no prefixes are valid to use. The bits of the number are the opcode groups.
+  size_t used_prefixes = 0xFF;
+
+  // What prefixes to detect. Zero means no prefixes are valid. The bits of the number are the opcode groups.
+  size_t detect_prefixes = 0xFF;
 };
 
 // This will modify cmdline.
@@ -182,7 +188,7 @@ void start(cpu_features const &features, char *cmdline)
   if (options.stop_after)
     format(">>> Stopping after ", options.stop_after, " execution attemps.\n");
 
-  search_engine search { options.prefixes };
+  search_engine search { options.prefixes, options.used_prefixes, options.detect_prefixes };
   execution_attempt last_attempt;
 
   do {
