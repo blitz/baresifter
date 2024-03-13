@@ -84,7 +84,7 @@ struct prefix_state {
     return false;
   }
 
-  bool has_unused_prefixes() const
+  bool search_engine::has_unused_prefixes(size_t used_prefixes_) const
   {
     //Detect used_prefixes and filter them out.
       size_t b = 1;
@@ -163,7 +163,7 @@ bool search_engine::find_next_candidate()
   // And also filter out prefixes that are declared not to be used.
   if (state.total_prefix_bytes() > max_prefixes_ or
       state.has_duplicated_prefixes() or
-      state.has_unused_prefixes() or
+      state.has_unused_prefixes(used_prefixes_) or
       not state.has_ordered_prefixes()) {
     goto again;
   }
