@@ -114,7 +114,7 @@ struct prefix_state {
   }
 };
 
-static prefix_state analyze_prefixes(instruction_bytes const &instr)
+static prefix_state analyze_prefixes(prefix_group_lut const &group_lut_, instruction_bytes const &instr)
 {
   prefix_state state;
 
@@ -156,7 +156,7 @@ bool search_engine::find_next_candidate()
     goto again;
   }
 
-  auto const state = analyze_prefixes(current_);
+  auto const state = analyze_prefixes(group_lut_, current_);
 
   // Duplicated prefixes make the search space explode without generating
   // insight. Also enforce order on prefixes to further reduce search space.
