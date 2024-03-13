@@ -29,13 +29,13 @@ static constexpr int opcode_to_prefix_group(uint8_t byte)
   case 0x65:                    // GS
     if (detect_prefixes & (1<<1)) //To detect?
     {
-    group = 1;
+      group = 1;
     }
     break;
   case 0x66:                    // operand size override
     if (detect_prefixes & (1<<2)) //To detect?
     {
-    group = 2;
+      group = 2;
     }
     break;
   case 0x67:                    // address size override
@@ -90,8 +90,17 @@ struct prefix_state {
       if (c >= 2)
         return true;
     }
-    //TODO: detect used_prefixed and filter them out.
+    
+    return false;
+  }
 
+  bool has_unused_prefixes() const
+  {
+    //Detect used_prefixes and filter them out.
+    for (size_t i = 0; i < array_size(count); i++)
+      if (count[i] and ((used_prefixes&(1<<i))==0)) //Prefix not to be used?
+        return true;
+    
     return false;
   }
 
@@ -158,8 +167,10 @@ bool search_engine::find_next_candidate()
 
   // Duplicated prefixes make the search space explode without generating
   // insight. Also enforce order on prefixes to further reduce search space.
+  // And also filter out prefixes that are declared not to be used.
   if (state.total_prefix_bytes() > max_prefixes_ or
       state.has_duplicated_prefixes() or
+      state.has_unused_prefixes() or
       not state.has_ordered_prefixes()) {
     goto again;
   }
