@@ -4,11 +4,7 @@
 #include "search.hpp"
 #include "util.hpp"
 
-struct prefix_lut {
-  int8_t data[256];
-};
-
-static constexpr int opcode_to_prefix_group(uint8_t byte)
+static constexpr int opcode_to_prefix_group(uint8_t byte, uint8_t detect_prefixes_)
 {
   int group = -1;
 
@@ -55,18 +51,16 @@ static constexpr int opcode_to_prefix_group(uint8_t byte)
   return group;
 }
 
-static constexpr prefix_lut create_prefix_group_lut()
+static constexpr prefix_lut create_prefix_group_lut(uint8_t detect_prefixes_)
 {
   prefix_lut group_lut {};
 
   for (size_t i = 0; i < array_size(group_lut.data); i++) {
-    group_lut.data[i] = (int8_t)opcode_to_prefix_group((uint8_t)i);
+    group_lut.data[i] = (int8_t)opcode_to_prefix_group((uint8_t)i,detect_prefixes_);
   }
 
   return group_lut;
 }
-
-static prefix_lut prefix_group_lut {create_prefix_group_lut()};
 
 // Encapsulates which prefixes are there, where and how many there are.
 struct prefix_state {
@@ -97,7 +91,7 @@ struct prefix_state {
   bool has_unused_prefixes() const
   {
     //Detect used_prefixes and filter them out.
-      for (size_t i = 0, size_t b = 1;; i < array_size(count); i++, b <<= 1)
+      for (size_t i = 0, size_t b = 1; i < array_size(count); i++, b <<= 1)
       {
           if (count[i] and ((used_prefixes_ & b) == 0)) //Prefix not to be used?
               return true;
