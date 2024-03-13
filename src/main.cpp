@@ -164,6 +164,10 @@ static options parse_and_destroy_cmdline(char *cmdline)
 
     if (strcmp(key, "prefixes") == 0)
       res.prefixes = atoi(value);
+    if (strcmp(key, "used_prefixes") == 0)
+      res.used_prefixes = atoi(value);
+    if (strcmp(key, "detect_prefixes") == 0)
+      res.detect_prefixes = atoi(value);
     if (strcmp(key, "stop_after") == 0)
       res.stop_after = atoi(value);
   }
