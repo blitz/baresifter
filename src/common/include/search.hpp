@@ -20,7 +20,7 @@ public:
     prefix_group_lut(uint8_t detect_prefixes_); //Prototype!
 };
 
-class search_engine :  {
+class search_engine {
   instruction_bytes current_;
   size_t increment_at_ = 0;
 
