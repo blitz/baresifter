@@ -13,9 +13,9 @@ struct instruction_bytes {
   {}
 };
 
-typedef struct prefix_lut {
+typedef struct {
     int8_t data[256];
-};
+} prefix_lut;
 
 static constexpr prefix_lut create_prefix_group_lut(uint8_t detect_prefixes_); //Prototype!
 

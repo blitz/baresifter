@@ -91,7 +91,8 @@ struct prefix_state {
   bool has_unused_prefixes() const
   {
     //Detect used_prefixes and filter them out.
-      for (size_t i = 0, size_t b = 1; i < array_size(count); i++, b <<= 1)
+      size_t b = 1;
+      for (size_t i = 0; i < array_size(count); i++, b <<= 1)
       {
           if (count[i] and ((used_prefixes_ & b) == 0)) //Prefix not to be used?
               return true;
