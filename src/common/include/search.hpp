@@ -13,18 +13,20 @@ struct instruction_bytes {
   {}
 };
 
-typedef struct {
+class prefix_group_lut {
+public:
     int8_t data[256];
-} prefix_lut;
 
-static constexpr prefix_lut create_prefix_group_lut(uint8_t detect_prefixes_); //Prototype!
+    prefix_group_lut(uint8_t detect_prefixes_); //Prototype!
+};
 
-class search_engine {
+class search_engine :  {
   instruction_bytes current_;
   size_t increment_at_ = 0;
 
   const size_t max_prefixes_; //How many prefixes to use at once.
   const size_t used_prefixes_; //What prefixes to scan through.
+  prefix_group_lut group_lut_; //What group lut to use!
 
 public:
 
@@ -45,6 +47,6 @@ public:
   }
 
   search_engine(size_t max_prefixes = 0, size_t used_prefixes = 0xFF, size_t detect_prefixes = 0xFF, instruction_bytes const &start = {})
-      : current_(start), max_prefixes_(max_prefixes), used_prefixes_(used_prefixes), prefix_group_lut{create_prefix_group_lut(detect_prefixes)}
+      : current_(start), max_prefixes_(max_prefixes), used_prefixes_(used_prefixes), group_lut_(detect_prefixes)
   {}
 };

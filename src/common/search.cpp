@@ -4,7 +4,7 @@
 #include "search.hpp"
 #include "util.hpp"
 
-static constexpr int opcode_to_prefix_group(uint8_t byte, uint8_t detect_prefixes_)
+static constexpr int opcode_to_prefix_group(uint8_t byte, size_t detect_prefixes_)
 {
   int group = -1;
 
@@ -51,15 +51,11 @@ static constexpr int opcode_to_prefix_group(uint8_t byte, uint8_t detect_prefixe
   return group;
 }
 
-static constexpr prefix_lut create_prefix_group_lut(uint8_t detect_prefixes_)
+prefix_group_lut::prefix_group_lut(size_t detect_prefixes_)
 {
-  prefix_lut group_lut {};
-
-  for (size_t i = 0; i < array_size(group_lut.data); i++) {
-    group_lut.data[i] = (int8_t)opcode_to_prefix_group((uint8_t)i,detect_prefixes_);
+  for (size_t i = 0; i < array_size(data); i++) {
+    data[i] = (int8_t)opcode_to_prefix_group((uint8_t)i,detect_prefixes_);
   }
-
-  return group_lut;
 }
 
 // Encapsulates which prefixes are there, where and how many there are.
@@ -123,7 +119,7 @@ static prefix_state analyze_prefixes(instruction_bytes const &instr)
   prefix_state state;
 
   for (size_t i = 0; i < sizeof(instr.raw); i++) {
-    int group = prefix_group_lut.data[instr.raw[i]];
+    int group = group_lut_.data[instr.raw[i]];
     if (group < 0)
       break;
 
