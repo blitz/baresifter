@@ -17,7 +17,7 @@ class prefix_group_lut {
 public:
     int8_t data[256];
 
-    prefix_group_lut(uint8_t detect_prefixes_); //Prototype!
+    prefix_group_lut(size_t detect_prefixes_); //Prototype!
 };
 
 class search_engine {

@@ -51,7 +51,7 @@ static constexpr int opcode_to_prefix_group(uint8_t byte, size_t detect_prefixes
   return group;
 }
 
-constexpr prefix_group_lut::prefix_group_lut(size_t detect_prefixes_)
+prefix_group_lut::prefix_group_lut(size_t detect_prefixes_)
 {
   for (size_t i = 0; i < array_size(data); i++) {
     data[i] = (int8_t)opcode_to_prefix_group((uint8_t)i,detect_prefixes_);
