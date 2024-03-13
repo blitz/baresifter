@@ -18,6 +18,7 @@ class search_engine {
   size_t increment_at_ = 0;
 
   const size_t max_prefixes_;
+  const size_t used_prefixes_;
 
 public:
 
@@ -37,7 +38,7 @@ public:
     return current_;
   }
 
-  search_engine(size_t max_prefixes = 0, instruction_bytes const &start = {})
-    : current_(start), max_prefixes_(max_prefixes)
+  search_engine(size_t max_prefixes = 0, size_t used_prefixes = 0xFF, instruction_bytes const &start = {})
+    : current_(start), max_prefixes_(max_prefixes), used_prefixes_(used_prefixes)
   {}
 };
