@@ -21,12 +21,10 @@ static constexpr prefix_lut create_prefix_group_lut(uint8_t detect_prefixes_); /
 
 class search_engine {
   instruction_bytes current_;
-  prefix_lut prefix_group_lut;
   size_t increment_at_ = 0;
 
   const size_t max_prefixes_; //How many prefixes to use at once.
   const size_t used_prefixes_; //What prefixes to scan through.
-  const size_t detect_prefixes_; //What prefixes to detect as prefixes.
 
 public:
 
@@ -47,6 +45,6 @@ public:
   }
 
   search_engine(size_t max_prefixes = 0, size_t used_prefixes = 0xFF, size_t detect_prefixes = 0xFF, instruction_bytes const &start = {})
-      : current_(start), max_prefixes_(max_prefixes), used_prefixes_(used_prefixes), detect_prefixes_(detect_prefixes), prefix_group_lut{create_prefix_group_lut(detect_prefixes)}
+      : current_(start), max_prefixes_(max_prefixes), used_prefixes_(used_prefixes), prefix_group_lut{create_prefix_group_lut(detect_prefixes)}
   {}
 };
