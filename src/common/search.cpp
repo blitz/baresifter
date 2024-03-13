@@ -27,25 +27,25 @@ static constexpr int opcode_to_prefix_group(uint8_t byte)
   case 0x26:                    // ES
   case 0x64:                    // FS
   case 0x65:                    // GS
-    if (detect_prefixes & (1<<0)) //To detect?
+    if (detect_prefixes & (1<<1)) //To detect?
     {
     group = 1;
     }
     break;
   case 0x66:                    // operand size override
-    if (detect_prefixes & (1<<1)) //To detect?
+    if (detect_prefixes & (1<<2)) //To detect?
     {
     group = 2;
     }
     break;
   case 0x67:                    // address size override
-    if (detect_prefixes & (1<<2)) //To detect?
+    if (detect_prefixes & (1<<3)) //To detect?
     {
       group = 3;
     }
     break;
   case 0x40 ... 0x4F:           // REX prefixes
-    if (detect_prefixes & (1<<3)) //To detect?
+    if (detect_prefixes & (1<<4)) //To detect?
     {
       group = 4;
     }
