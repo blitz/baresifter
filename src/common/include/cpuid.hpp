@@ -26,3 +26,12 @@ uint32_t get_cpuid_max_ext_level();
 
 // Returns true, if the CPU reports being able to use the NX bit.
 bool has_nx();
+
+// Returns true, if the CPU reports being able to use SMEP.
+bool has_smep();
+
+// Returns true, if the CPU reports being able to use PSE.
+bool has_pse();
+
+// Returns true, if the CPU reports being able to use the WP bit in CR0.
+bool has_wp();

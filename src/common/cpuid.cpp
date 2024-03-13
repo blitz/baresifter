@@ -2,9 +2,47 @@
 
 #include "cpuid.hpp"
 
+bool cpuid_supported()
+{
+    #ifndef __x86_64__
+    //We need to check for the existence of CPUID on 32-bit platforms!
+    unsigned int res1,res2;
+    asm(
+        "pushfl\n\t" //Save original interrupt state
+        "cli\n\t" //Block interrupts to be safe, as we're modifying the stack alignment, making this a critical section
+        "push %%ebp\n\t" //Save original stack base pointer
+        "mov %%esp,%%ebp\n\t" //Save original stack alignment
+        "and $-4,%%esp\n\t" //align stack
+        "pushfl\n\t" //Load...
+        "pop %%eax\n\t" //... old EFLAGS
+        "mov %%eax,%%ebx\n\t" //Copy of it for the result check
+        "xor $0x200000,%%eax\n\t" //Flip CPUID bit now
+        "push %%eax\n\t"
+        "popfl\n\t" //Store changed bit into flags
+        "pushfl\n\t" //New eflags back on the stack
+        "pop %%eax\n\t" //Get if it changed
+        "mov %%eax, %0\n\t" //Flipped eflags result
+        "mov %%ebx, %1\n\t" //Original eflags result
+        "mov %%ebp,%%esp\n\t" //Restore original stack alignment
+        "pop %%ebp\n\t" //Restore stack base pointer
+        "popfl" //Restore original interrupt state
+        : "=a" (res1), "=b" (res2));
+    return (((res1 ^ res2) & 0x200000)!=0); //Has the CPUID bit changed and is supported?
+    #else
+    return true; //Always assumed supported!
+    #endif
+}
+
 cpuid_result get_cpuid(uint32_t leaf, uint32_t subleaf)
 {
   cpuid_result res;
+  if (!cpuid_supported()) //CPUID not supported?
+  {
+      res.eax = res.ebx = res.edx = res.ecx = 0; //Simply give empty result!
+      return res; //Give empty result!
+  }
+
+  //CPUID is supported!
   asm ("cpuid"
        : "=a" (res.eax), "=b" (res.ebx),
          "=d" (res.edx), "=c" (res.ecx)
@@ -46,4 +84,47 @@ bool has_nx()
 {
   return get_cpuid_max_ext_level() >= 0x80000001
     and (get_cpuid(0x80000001).edx & (1 << 20));
+}
+
+bool has_smep()
+{
+    return get_cpuid_max_std_level() >= 7
+        and (get_cpuid(0x7).ebx & (1 << 7));
+}
+
+bool has_pse()
+{
+    return get_cpuid_max_std_level() >= 1
+        and (get_cpuid(0x1).edx & (1 << 3));
+}
+
+bool has_wp()
+{
+#ifndef __x86_64__
+    //We need to check for the existence of CR0 WP on 32-bit platforms!
+    unsigned int res1, res2;
+    asm(
+        "pushfl\n\t" //Save original interrupt state
+        "cli\n\t" //Block interrupts to be safe, as we're modifying the stack alignment, making this a critical section
+        "push %%ebp\n\t" //Save original stack base pointer
+        "mov %%esp,%%ebp\n\t" //Save original stack alignment
+        "and $-4,%%esp\n\t" //align stack. Important to prevent faulting on this down the road!
+        "pushfl\n\t" //Load...
+        "pop %%eax\n\t" //... old EFLAGS
+        "mov %%eax,%%ebx\n\t" //Copy of it for the result check
+        "xor $0x40000,%%eax\n\t" //Flip AC bit now
+        "push %%eax\n\t"
+        "popfl\n\t" //Store changed bit into flags
+        "pushfl\n\t" //New eflags back on the stack
+        "pop %%eax\n\t" //Get if it changed
+        "mov %%eax, %0\n\t" //Flipped eflags result
+        "mov %%ebx, %1\n\t" //Original eflags result
+        "mov %%ebp,%%esp\n\t" //Restore original stack alignment
+        "pop %%ebp\n\t" //Restore stack base pointer
+        "popfl" //Restore original interrupt state
+        : "=a" (res1), "=b" (res2));
+    return (((res1 ^ res2) & 0x40000) != 0); //Has the AC bit changed and is supported (indicates WP bit is supported)?
+#else
+    return true; //Always assumed supported!
+#endif
 }
